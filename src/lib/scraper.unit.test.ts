@@ -14,11 +14,13 @@ const mockLiveStores = vi.mocked(searchLiveStores);
 const sale = (overrides = {}) => ({
   storeId: '1122',
   productId: '-2023415491',
+  itemCode: null,
   productName: 'Hormel Marinated Pork Loin Tenderloin',
   description: 'Free item of equal or lesser price.',
   imageUrl: 'img',
   salePrice: 'Buy 1 Get 1 FREE',
   isBogo: true,
+  dealInfo: null,
   department: 'meat',
   startDate: new Date('2026-09-10'),
   endDate: new Date('2026-09-16'),

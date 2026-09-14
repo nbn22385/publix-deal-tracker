@@ -1,10 +1,13 @@
 export interface MatchableSale {
   productId: string;
+  itemCode?: string | null;
   productName: string;
   department: string;
   salePrice: string;
   isBogo: boolean;
   imageUrl: string;
+  description?: string;
+  dealInfo?: string | null;
 }
 
 export interface WatchlistEntry {
@@ -17,6 +20,8 @@ export interface WatchlistEntry {
   alertDepartment?: string | null;
   /** Resolved productId for specific_item entries (via join to available_items). */
   productId?: string | null;
+  /** Stable cross-system key: ad wa_itemCode ↔ catalog itemCode. */
+  itemCode?: string | null;
 }
 
 export interface MatchedItem {
@@ -51,13 +56,17 @@ export function isKeywordMatch(
   keywordsRaw: string | null | undefined,
   saleDepartment: string,
   filterDepartment?: string | null,
+  saleIsBogo = false,
 ): boolean {
   if (!keywordsRaw || !productName) return false;
-  if (filterDepartment && saleDepartment !== filterDepartment) return false;
   const keywords = parseKeywords(keywordsRaw);
   if (keywords.length === 0) return false;
   const normalizedName = normalizeSearchText(productName);
-  return keywords.some((kw) => normalizedName.includes(kw));
+  if (!keywords.some((kw) => normalizedName.includes(kw))) return false;
+  // 'bogo' is a promotion, not a department — match the flag instead.
+  if (filterDepartment === 'bogo') return saleIsBogo;
+  if (filterDepartment && saleDepartment !== filterDepartment) return false;
+  return true;
 }
 
 export function isSpecificItemMatch(
@@ -66,10 +75,10 @@ export function isSpecificItemMatch(
   availableIdToSale?: Map<number, MatchableSale>,
 ): boolean {
   if (entry.alertType !== 'specific_item') return false;
-  // Preferred: match by stable productId (survives weekly available_items refresh).
-  if (entry.productId) {
-    return entry.productId === sale.productId;
-  }
+  // Stable productId match (survives weekly available_items refresh).
+  if (entry.productId && entry.productId === sale.productId) return true;
+  // Cross-system key: catalog adds (itemCode) match ad items (wa_itemCode).
+  if (entry.itemCode && sale.itemCode && entry.itemCode === sale.itemCode) return true;
   // Legacy fallback: match by available_items row id (only valid within same refresh).
   if (entry.availableItemId != null && availableIdToSale) {
     return availableIdToSale.get(entry.availableItemId)?.productId === sale.productId;
@@ -87,9 +96,13 @@ export function matchWatchlist(
   availableIdToSale?: Map<number, MatchableSale>,
 ): MatchedItem[] {
   const saleMap = new Map<string, MatchableSale>();
+  const saleCodeMap = new Map<string, MatchableSale>();
   for (const sale of sales) {
     if (!saleMap.has(sale.productId)) {
       saleMap.set(sale.productId, sale);
+    }
+    if (sale.itemCode && !saleCodeMap.has(sale.itemCode)) {
+      saleCodeMap.set(sale.itemCode, sale);
     }
   }
 
@@ -97,17 +110,21 @@ export function matchWatchlist(
 
   for (const entry of watchlist) {
     if (entry.alertType === 'specific_item') {
-      if (entry.productId) {
-        const sale = saleMap.get(entry.productId);
-        if (sale) matched.push({ watchlistId: entry.id, item: sale });
-      } else if (entry.availableItemId != null && availableIdToSale) {
-        const sale = availableIdToSale.get(entry.availableItemId);
-        if (sale) matched.push({ watchlistId: entry.id, item: sale });
+      const sale =
+        (entry.productId ? saleMap.get(entry.productId) : undefined) ??
+        (entry.itemCode ? saleCodeMap.get(entry.itemCode) : undefined);
+      if (sale) {
+        matched.push({ watchlistId: entry.id, item: sale });
+        continue;
+      }
+      if (entry.availableItemId != null && availableIdToSale) {
+        const legacy = availableIdToSale.get(entry.availableItemId);
+        if (legacy) matched.push({ watchlistId: entry.id, item: legacy });
       }
     } else if (entry.alertType === 'keyword' && entry.keywords) {
       const dept = entryDepartment(entry);
       for (const sale of saleMap.values()) {
-        if (isKeywordMatch(sale.productName, entry.keywords, sale.department, dept)) {
+        if (isKeywordMatch(sale.productName, entry.keywords, sale.department, dept, sale.isBogo)) {
           matched.push({ watchlistId: entry.id, item: sale });
           break;
         }
@@ -120,14 +137,17 @@ export function matchWatchlist(
 
 /** Dashboard helper: filter sales down to those matching any watchlist entry. */
 export function filterSalesByWatchlist<
-  TSale extends { productId: string | null; productName: string | null; department: string },
+  TSale extends { productId: string | null; productName: string | null; department: string; isBogo?: boolean | null; itemCode?: string | null },
   TEntry extends WatchlistEntry,
 >(watchlist: TEntry[], sales: TSale[]): TSale[] {
   return sales.filter((sale) =>
     watchlist.some((entry) => {
-      if (entry.alertType === 'specific_item' && (entry.productId || entry.availableItemId != null)) {
-        if (entry.productId && sale.productId) {
-          return entry.productId === sale.productId;
+      if (entry.alertType === 'specific_item' && (entry.productId || entry.itemCode || entry.availableItemId != null)) {
+        if (entry.productId && sale.productId && entry.productId === sale.productId) {
+          return true;
+        }
+        if (entry.itemCode && sale.itemCode && entry.itemCode === sale.itemCode) {
+          return true;
         }
         return false;
       }
@@ -137,6 +157,7 @@ export function filterSalesByWatchlist<
           entry.keywords,
           sale.department,
           entryDepartment(entry),
+          sale.isBogo ?? false,
         );
       }
       return false;

@@ -14,8 +14,12 @@ export interface Store {
 export interface SaleItem {
   storeId: string;
   productId: string;
+  /** Stable cross-system key (ad wa_itemCode / catalog itemCode). */
+  itemCode: string | null;
   productName: string;
   description: string;
+  /** Promo detail line, e.g. "SAVE UP TO $6.49". */
+  dealInfo: string | null;
   imageUrl: string;
   salePrice: string;
   isBogo: boolean;
@@ -122,16 +126,20 @@ export async function getCurrentWeeklyAd(storeId: string): Promise<SaleItem[]> {
 
 export const DEPARTMENTS: Record<string, string> = {
   bogo: 'BOGO',
-  baby: 'Baby',
-  bakery: 'Bakery',
-  beauty: 'Beauty',
-  dairy: 'Dairy',
-  deli: 'Deli',
-  frozen: 'Frozen',
-  grocery: 'Grocery',
-  meat: 'Meat',
   produce: 'Produce',
+  meat: 'Meat',
   seafood: 'Seafood',
+  deli: 'Deli',
+  bakery: 'Bakery',
+  dairy: 'Dairy',
+  frozen: 'Frozen',
+  beverages: 'Beverages',
+  snacks: 'Snacks',
+  pantry: 'Pantry',
+  baby: 'Baby',
+  beauty: 'Beauty',
   health: 'Health',
+  household: 'Household',
   pet: 'Pet',
+  grocery: 'Grocery',
 };

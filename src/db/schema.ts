@@ -65,6 +65,8 @@ export const availableItems = pgTable('available_items', {
   isBogo: boolean('is_bogo').default(false),
   salePrice: text('sale_price'),
   description: text('description'),
+  // Cross-system product key (ad wa_itemCode ↔ catalog itemCode).
+  itemCode: text('item_code'),
   fetchedAt: timestamp('fetched_at').defaultNow(),
 });
 
@@ -77,6 +79,8 @@ export const watchlistItems = pgTable('watchlist_items', {
   // deletes + re-inserts, so it can't survive a refresh — productId can.
   productId: text('product_id'),
   productName: text('product_name'),
+  // Stable cross-system key: ad wa_itemCode ↔ catalog itemCode.
+  itemCode: text('item_code'),
   keywords: text('keywords'),
   department: text('department'),
   alertType: text('alert_type').notNull(),

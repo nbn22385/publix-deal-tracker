@@ -29,12 +29,16 @@ export interface PublixSaving {
   id: string;
   dcId: number;
   waId: number;
+  /** Cross-system product key — matches catalog `itemCode` (0 when absent). */
+  wa_itemCode: number;
   savingType: string;
   savings: string;
   finalPrice: number;
   title: string;
   brand: string | null;
   description: string | null;
+  /** Promo detail line, e.g. "SAVE UP TO $6.49". */
+  additionalDealInfo: string | null;
   categories: string[] | null;
   department: string | null;
   imageUrl: string | null;
@@ -46,8 +50,12 @@ export interface PublixSaving {
 export interface PublixSale {
   storeId: string;
   productId: string;
+  /** Stable cross-system key (ad `wa_itemCode`); null when the ad omits it. */
+  itemCode: string | null;
   productName: string;
   description: string;
+  /** Promo detail line, e.g. "SAVE UP TO $6.49". */
+  dealInfo: string | null;
   imageUrl: string;
   salePrice: string;
   isBogo: boolean;
@@ -58,9 +66,9 @@ export interface PublixSale {
 
 /**
  * Collapse Publix's ~90 fine-grained departments onto the app's buckets
- * (see DEPARTMENTS in scraper.ts). Anything unlisted falls through to
- * 'grocery'. Verified against live ad data — every bucket below has items
- * when the ad contains them.
+ * (see DEPARTMENTS in scraper.ts). Unlisted departments fall through to
+ * the item's `categories` tags (which cover the ~half of ad items that
+ * carry no department at all), then to 'grocery'.
  */
 const DEPARTMENT_BUCKETS: Record<string, string> = {
   milk: 'dairy',
@@ -83,6 +91,56 @@ const DEPARTMENT_BUCKETS: Record<string, string> = {
   frozen: 'frozen',
   'frozen meat': 'frozen',
   'frozen food': 'frozen',
+  'ice cream': 'frozen',
+  pizza: 'frozen',
+  dinners: 'frozen',
+  'soft drinks': 'beverages',
+  water: 'beverages',
+  'coffee & tea': 'beverages',
+  'ground coffee': 'beverages',
+  wine: 'beverages',
+  'cold beer': 'beverages',
+  'sports drinks': 'beverages',
+  'fruit drinks': 'beverages',
+  snacks: 'snacks',
+  cookies: 'snacks',
+  candy: 'snacks',
+  nuts: 'snacks',
+  'potato chips': 'snacks',
+  crackers: 'snacks',
+  popcorn: 'snacks',
+  'dried fruit & trail mix': 'snacks',
+  cereal: 'pantry',
+  'pasta & pasta sauce': 'pantry',
+  'soup & broth': 'pantry',
+  'condiments & sauces': 'pantry',
+  'salad dressing': 'pantry',
+  'pickles & olives': 'pantry',
+  'cooking & olive oil': 'pantry',
+  'peanut butter & jelly': 'pantry',
+  'spices & extract': 'pantry',
+  'syrup & honey': 'pantry',
+  sugar: 'pantry',
+  'canned fruit': 'pantry',
+  'canned vegetables': 'pantry',
+  'rice & dry beans': 'pantry',
+  'baking products': 'pantry',
+  'stuffing/potatoes': 'pantry',
+  'international food': 'pantry',
+  'international foods - mexican': 'pantry',
+  'household cleaners': 'household',
+  'laundry detergent': 'household',
+  'paper products': 'household',
+  'bathroom tissue': 'household',
+  charcoal: 'household',
+  'plastic bags': 'household',
+  'light bulbs': 'household',
+  insecticide: 'household',
+  'foil bakeware': 'household',
+  'kitchen utensils': 'household',
+  batteries: 'household',
+  'brooms & mops': 'household',
+  'facial tissue': 'household',
   'baby food': 'baby',
   'baby needs': 'baby',
   toothpaste: 'beauty',
@@ -98,24 +156,57 @@ const DEPARTMENT_BUCKETS: Record<string, string> = {
   'first aid': 'health',
   laxatives: 'health',
   'adult care': 'health',
+  'nutritional bars': 'health',
   'pet food': 'pet',
 };
 
-export function normalizeDepartment(department: string | null): string {
-  const key = decodeEntities(department ?? '').toLowerCase().trim();
-  if (!key) return 'grocery';
-  return DEPARTMENT_BUCKETS[key] ?? 'grocery';
+/** Category tags that imply a bucket when the department is missing/generic. */
+const CATEGORY_BUCKETS: Record<string, string> = {
+  meat: 'meat',
+  produce: 'produce',
+  seafood: 'seafood',
+  deli: 'deli',
+  bakery: 'bakery',
+  dairy: 'dairy',
+  snacks: 'snacks',
+  beverages: 'beverages',
+  'beer-and-wine': 'beverages',
+  liquor: 'beverages',
+  frozen: 'frozen',
+  'frozen-food': 'frozen',
+  meals: 'deli',
+  breakfast: 'pantry',
+  'health-and-nutrition': 'health',
+  'non-foods': 'household',
+};
+
+export function normalizeDepartment(
+  department: string | string[] | null,
+  categories?: string[] | null,
+): string {
+  // Catalog taxonomy arrives as a path list, e.g. ["Grocery/Coffee/..."].
+  const raw = Array.isArray(department) ? department[department.length - 1] ?? null : department;
+  const leaf = (raw ?? '').split('/').pop() ?? '';
+  const key = decodeEntities(typeof leaf === 'string' ? leaf : '').toLowerCase().trim();
+  if (key && DEPARTMENT_BUCKETS[key]) return DEPARTMENT_BUCKETS[key];
+  for (const category of categories ?? []) {
+    const bucket = CATEGORY_BUCKETS[category.toLowerCase().trim()];
+    if (bucket) return bucket;
+  }
+  return 'grocery';
 }
 
 export function isBogoSaving(
   item: Pick<PublixSaving, 'savings' | 'categories'>,
 ): boolean {
-  if (/buy 1 get 1/i.test(item.savings ?? '')) return true;
+  // Promotion text variants: "Buy 1 Get 1 FREE", "Buy 2 Get 1 FREE", ...
+  if (/bogo/i.test(item.savings ?? '')) return true;
+  if (/buy.+get.+free/i.test(item.savings ?? '')) return true;
   return (item.categories ?? []).some((c) => c.toLowerCase() === 'bogo');
 }
 
-export function decodeEntities(value: string | null): string {
-  if (!value) return '';
+export function decodeEntities(value: unknown): string {
+  if (typeof value !== 'string' || !value) return '';
   return he.decode(value);
 }
 
@@ -123,12 +214,14 @@ export function mapToSale(item: PublixSaving, storeId: string): PublixSale {
   return {
     storeId,
     productId: String(item.waId),
+    itemCode: item.wa_itemCode ? String(item.wa_itemCode) : null,
     productName: decodeEntities(item.title ?? '').replace(/\s+/g, ' ').trim(),
     description: decodeEntities(item.description).replace(/\s+/g, ' ').trim(),
+    dealInfo: decodeEntities(item.additionalDealInfo).replace(/\s+/g, ' ').trim() || null,
     imageUrl: item.enhancedImageUrl || item.imageUrl || '',
     salePrice: decodeEntities(item.savings ?? ''),
     isBogo: isBogoSaving(item),
-    department: normalizeDepartment(item.department),
+    department: normalizeDepartment(item.department, item.categories),
     startDate: new Date(item.wa_startDate),
     endDate: new Date(item.wa_endDate),
   };
@@ -167,28 +260,90 @@ async function fetchSavingsPage(storeId: string, page: number): Promise<PublixSa
 }
 
 /**
- * Current Weekly Ad sales for a store. Returns [] when the API is
- * unreachable — never throws, so callers (cron, browse UI) degrade to
- * "no sales right now" instead of 500s.
+ * Weekly-ad cache. Publix rotates the ad weekly, so a 24h TTL is plenty
+ * fresh while turning every repeat view (browse department switching,
+ * dashboard reloads, cron users sharing a store) into a memory hit
+ * instead of ~4 paginated API calls.
+ *
+ * Note: this is per server instance. On serverless (Vercel) each instance
+ * holds its own copy — still a big win within an instance's lifetime.
  */
-export async function getWeeklyAdForStore(storeId: string): Promise<PublixSale[]> {
+export const WEEKLY_AD_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_CACHED_STORES = 200;
+
+interface WeeklyAdCacheEntry {
+  items: PublixSale[];
+  fetchedAt: number;
+}
+
+const weeklyAdCache = new Map<string, WeeklyAdCacheEntry>();
+const weeklyAdInflight = new Map<string, Promise<PublixSale[]>>();
+
+/** Test/support hook: drop cached entries (all, or one store). */
+export function clearWeeklyAdCache(storeId?: string): void {
+  if (storeId) {
+    weeklyAdCache.delete(storeId);
+    weeklyAdInflight.delete(storeId);
+  } else {
+    weeklyAdCache.clear();
+    weeklyAdInflight.clear();
+  }
+}
+
+async function fetchAllWeeklyAdPages(storeId: string): Promise<PublixSale[]> {
   const sales: PublixSale[] = [];
-  try {
-    for (let page = 1; page <= MAX_PAGES; page++) {
-      const items = await fetchSavingsPage(storeId, page);
-      if (items.length === 0) break;
-      for (const item of items) {
-        if (item.savingType === 'WeeklyAd' && item.title) {
-          sales.push(mapToSale(item, storeId));
-        }
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const items = await fetchSavingsPage(storeId, page);
+    if (items.length === 0) break;
+    for (const item of items) {
+      if (item.savingType === 'WeeklyAd' && item.title) {
+        sales.push(mapToSale(item, storeId));
       }
-      if (items.length < PAGE_SIZE) break;
     }
-  } catch (error) {
-    console.error('Error fetching weekly ad from publix.com:', error);
-    return [];
+    if (items.length < PAGE_SIZE) break;
   }
   return sales;
+}
+
+/**
+ * Current Weekly Ad sales for a store. Served from a 24h in-memory cache;
+ * concurrent callers share a single in-flight fetch. Returns [] when the
+ * API is unreachable and nothing usable is cached — never throws, so
+ * callers (cron, browse UI) degrade to "no sales right now" instead
+ * of 500s. A stale cache is served when a refresh fails.
+ */
+export async function getWeeklyAdForStore(
+  storeId: string,
+  opts?: { forceRefresh?: boolean },
+): Promise<PublixSale[]> {
+  const cached = weeklyAdCache.get(storeId);
+  if (!opts?.forceRefresh && cached && Date.now() - cached.fetchedAt < WEEKLY_AD_TTL_MS) {
+    return cached.items;
+  }
+
+  const ongoing = weeklyAdInflight.get(storeId);
+  if (ongoing) return ongoing;
+
+  const refresh = fetchAllWeeklyAdPages(storeId)
+    .then((items) => {
+      if (weeklyAdCache.size >= MAX_CACHED_STORES && !weeklyAdCache.has(storeId)) {
+        const oldest = weeklyAdCache.keys().next();
+        if (!oldest.done) weeklyAdCache.delete(oldest.value);
+      }
+      weeklyAdCache.set(storeId, { items, fetchedAt: Date.now() });
+      weeklyAdInflight.delete(storeId);
+      return items;
+    })
+    .catch((error) => {
+      console.error('Error fetching weekly ad from publix.com:', error);
+      weeklyAdInflight.delete(storeId);
+      // Resilience: a failed refresh still serves the last good snapshot.
+      if (cached) return cached.items;
+      return [];
+    });
+
+  weeklyAdInflight.set(storeId, refresh);
+  return refresh;
 }
 
 export interface LiveStore {
@@ -257,6 +412,113 @@ export async function searchLiveStores(zipCode: string, count = 10): Promise<Liv
       .filter((s): s is LiveStore => s !== null);
   } catch (error) {
     console.error('Error searching Publix stores:', error);
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export interface CatalogProduct {
+  /** Catalog id (baseProductId, e.g. "RIO-PCI-119468"). */
+  productId: string;
+  /** Cross-system key matching ad `wa_itemCode`s. */
+  itemCode: string | null;
+  productName: string;
+  imageUrl: string;
+  priceText: string;
+  onSale: boolean;
+  isBogo: boolean;
+  department: string;
+}
+
+interface CatalogSearchPayload {
+  storeProducts?: {
+    baseProductId?: string;
+    itemCode?: number | string | null;
+    title?: string;
+    titleName?: string;
+    imageUrls?: { large?: { a?: string | null } };
+    priceLine?: string | null;
+    priceDecimal?: number | null;
+    onSale?: boolean;
+    facetWeeklyAd?: boolean;
+    facetBOGO?: boolean;
+    fauxTaxonomy?: string | string[] | null;
+  }[];
+}
+
+const catalogCache = new Map<string, { items: CatalogProduct[]; fetchedAt: number }>();
+
+/** Test/support hook. */
+export function clearCatalogCache(): void {
+  catalogCache.clear();
+}
+
+export function mapCatalogProduct(
+  raw: NonNullable<CatalogSearchPayload['storeProducts']>[number],
+): CatalogProduct | null {
+  const name = decodeEntities(raw.titleName || raw.title || '').replace(/\s+/g, ' ').trim();
+  if (!name) return null;
+  const itemCode = raw.itemCode != null && String(raw.itemCode) !== '0' ? String(raw.itemCode) : null;
+  return {
+    productId: raw.baseProductId || (itemCode ?? name),
+    itemCode,
+    productName: name,
+    imageUrl: raw.imageUrls?.large?.a || '',
+    priceText: decodeEntities(raw.priceLine || ''),
+    onSale: Boolean(raw.onSale || raw.facetWeeklyAd),
+    isBogo: Boolean(raw.facetBOGO),
+    department: normalizeDepartment(raw.fauxTaxonomy || null),
+  };
+}
+
+/**
+ * Master-catalog search via Publix's server-rendered search page
+ * (embedded `first-search-results` JSON — no browser needed). Results
+ * cover on-sale and regular products alike. Cached 24h per query.
+ * Never throws; returns [] on failure.
+ */
+export async function searchCatalog(query: string): Promise<CatalogProduct[]> {
+  const key = query.trim().toLowerCase();
+  if (!key) return [];
+  const cached = catalogCache.get(key);
+  if (cached && Date.now() - cached.fetchedAt < WEEKLY_AD_TTL_MS) {
+    return cached.items;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(
+      `https://www.publix.com/search?searchTerm=${encodeURIComponent(query.trim())}`,
+      {
+        signal: controller.signal,
+        headers: {
+          Accept: 'text/html',
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+        },
+      },
+    );
+    if (!res.ok) throw new Error(`Publix catalog search failed: ${res.status}`);
+    const html = await res.text();
+    const attr = 'first-search-results="';
+    const start = html.indexOf(attr);
+    if (start < 0) return [];
+    const end = html.indexOf('"', start + attr.length);
+    if (end < 0) return [];
+    const payload = JSON.parse(he.decode(html.slice(start + attr.length, end))) as CatalogSearchPayload;
+    const products = Array.isArray(payload.storeProducts) ? payload.storeProducts : [];
+    const items = products
+      .map(mapCatalogProduct)
+      .filter((p): p is CatalogProduct => p !== null);
+    if (catalogCache.size >= MAX_CACHED_STORES && !catalogCache.has(key)) {
+      const oldest = catalogCache.keys().next();
+      if (!oldest.done) catalogCache.delete(oldest.value);
+    }
+    catalogCache.set(key, { items, fetchedAt: Date.now() });
+    return items;
+  } catch (error) {
+    console.error('Error searching Publix catalog:', error);
     return [];
   } finally {
     clearTimeout(timeout);

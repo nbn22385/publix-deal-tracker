@@ -68,6 +68,12 @@ describe('isKeywordMatch', () => {
     expect(isKeywordMatch('Café Bustelo', 'cafe', 'grocery', null)).toBe(true);
     expect(isKeywordMatch("Chock Full o'Nuts", 'nuts', 'grocery', null)).toBe(true);
   });
+
+  it("treats 'bogo' as a promotion filter, not a department", () => {
+    expect(isKeywordMatch('Greek Yogurt', 'yogurt', 'dairy', 'bogo', true)).toBe(true);
+    expect(isKeywordMatch('Greek Yogurt', 'yogurt', 'dairy', 'bogo', false)).toBe(false);
+    expect(isKeywordMatch('Greek Yogurt', 'yogurt', 'dairy', 'dairy', false)).toBe(true);
+  });
 });
 
 describe('isSpecificItemMatch', () => {
@@ -80,6 +86,21 @@ describe('isSpecificItemMatch', () => {
     ).toBe(true);
     expect(
       isSpecificItemMatch({ id: 1, alertType: 'specific_item', productId: 'p1' }, sale({ productId: 'p2' })),
+    ).toBe(false);
+  });
+
+  it('matches catalog adds via itemCode against ad sales', () => {
+    expect(
+      isSpecificItemMatch(
+        { id: 2, alertType: 'specific_item', productId: 'RIO-PCI-224085', itemCode: '15167' },
+        sale({ productId: '-2023415483', itemCode: '15167' }),
+      ),
+    ).toBe(true);
+    expect(
+      isSpecificItemMatch(
+        { id: 3, alertType: 'specific_item', productId: 'RIO-PCI-224085', itemCode: '15167' },
+        sale({ productId: '-2023415483', itemCode: '99999' }),
+      ),
     ).toBe(false);
   });
 
@@ -108,6 +129,19 @@ describe('matchWatchlist', () => {
     expect(matched).toHaveLength(1);
     expect(matched[0]?.watchlistId).toBe(10);
     expect(matched[0]?.item.productId).toBe('p2');
+  });
+
+  it('matches catalog entries to ad sales via itemCode', () => {
+    const adSales = [
+      sale({ productId: '-2023415483', itemCode: '15167', productName: 'Game Day Brownie Bite Platter' }),
+    ];
+    const matched = matchWatchlist(
+      [{ id: 12, alertType: 'specific_item', productId: 'RIO-BPL-224085', itemCode: '15167' }],
+      adSales,
+    );
+    expect(matched).toHaveLength(1);
+    expect(matched[0]?.watchlistId).toBe(12);
+    expect(matched[0]?.item.productId).toBe('-2023415483');
   });
 
   it('does not match specific items with stale availableItemId alone', () => {

@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
         availableItemId: watchlistItems.availableItemId,
         storedProductId: watchlistItems.productId,
         storedProductName: watchlistItems.productName,
+        storedItemCode: watchlistItems.itemCode,
         keywords: watchlistItems.keywords,
         alertDepartment: watchlistItems.department,
         alertType: watchlistItems.alertType,
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
         isBogo: availableItems.isBogo,
         salePrice: availableItems.salePrice,
         imageUrl: availableItems.imageUrl,
+        itemDescription: availableItems.description,
       })
       .from(watchlistItems)
       .leftJoin(availableItems, eq(watchlistItems.availableItemId, availableItems.id))
@@ -55,10 +57,12 @@ export async function GET(request: NextRequest) {
             ? decodeEntities(row.joinedProductName)
             : row.joinedProductName,
       productId: row.storedProductId ?? row.joinedProductId,
+      itemCode: row.storedItemCode ?? null,
       itemDepartment: row.itemDepartment,
       isBogo: row.isBogo,
       salePrice: row.salePrice != null ? decodeEntities(row.salePrice) : row.salePrice,
       imageUrl: row.imageUrl,
+      description: row.itemDescription != null ? decodeEntities(row.itemDescription) : null,
     }));
 
     return NextResponse.json({ items });
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, availableItemId, productId, productName, keywords, department, alertType } = body;
+    const { userId, availableItemId, productId, productName, itemCode, keywords, department, alertType } = body;
 
     if (!userId || !alertType) {
       return NextResponse.json({ error: 'User ID and alert type are required' }, { status: 400 });
@@ -92,6 +96,7 @@ export async function POST(request: NextRequest) {
         availableItemId: availableItemId || null,
         productId: productId || null,
         productName: productName || null,
+        itemCode: itemCode || null,
         keywords: keywords || null,
         department: department || null,
         alertType,

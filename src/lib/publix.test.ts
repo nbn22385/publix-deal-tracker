@@ -1,10 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   isBogoSaving,
   normalizeDepartment,
   decodeEntities,
   mapToSale,
   mapLiveStore,
+  mapCatalogProduct,
+  searchCatalog,
+  getWeeklyAdForStore,
+  clearWeeklyAdCache,
+  clearCatalogCache,
+  WEEKLY_AD_TTL_MS,
   type PublixSaving,
 } from './publix';
 
@@ -12,12 +18,14 @@ const saving = (overrides: Partial<PublixSaving> = {}): PublixSaving => ({
   id: 'abc',
   dcId: 0,
   waId: -2023415491,
+  wa_itemCode: 0,
   savingType: 'WeeklyAd',
   savings: 'Buy 1 Get 1 FREE',
   finalPrice: 0,
   title: 'Hormel Marinated Pork Loin Tenderloin',
   brand: 'Hormel',
   description: 'Free item of equal or lesser price.&#13;&#10;Or Filet.',
+  additionalDealInfo: 'SAVE UP TO $9.49',
   categories: ['meat', 'bogo', 'protein'],
   department: 'Meat',
   imageUrl: 'http://img/small.jpg',
@@ -32,6 +40,12 @@ describe('isBogoSaving', () => {
     expect(isBogoSaving(saving())).toBe(true);
   });
 
+  it('detects buy-N-get-M variants', () => {
+    expect(isBogoSaving(saving({ savings: 'Buy 2 Get 1 FREE', categories: [] }))).toBe(true);
+    expect(isBogoSaving(saving({ savings: 'Buy 2 Get 2 FREE', categories: [] }))).toBe(true);
+    expect(isBogoSaving(saving({ savings: 'Buy 2 get one FREE', categories: [] }))).toBe(true);
+  });
+
   it('detects the bogo category tag', () => {
     expect(isBogoSaving(saving({ savings: '', categories: ['BOGO'] }))).toBe(true);
   });
@@ -43,32 +57,47 @@ describe('isBogoSaving', () => {
 
 describe('normalizeDepartment', () => {
   it.each([
-    ['Meat', 'meat'],
-    ['Produce', 'produce'],
-    ['Deli', 'deli'],
-    ['Frozen Meat', 'frozen'],
-    ['Frozen Food', 'frozen'],
-    ['Milk', 'dairy'],
-    ['Cheese', 'dairy'],
-    ['Yogurt', 'dairy'],
-    ['Eggs', 'dairy'],
-    ['Toothpaste', 'beauty'],
-    ['Hair Care', 'beauty'],
-    ['Baby Food', 'baby'],
-    ['Vitamins', 'health'],
-    ['Cough &amp; Cold', 'health'],
-    ['Pet Food', 'pet'],
-    ['Bread', 'bakery'],
-    ['Lunch Meat', 'deli'],
-    ['Seafood', 'seafood'],
+    ['Meat', undefined, 'meat'],
+    ['Produce', undefined, 'produce'],
+    ['Deli', undefined, 'deli'],
+    ['Frozen Meat', undefined, 'frozen'],
+    ['Frozen Food', undefined, 'frozen'],
+    ['Milk', undefined, 'dairy'],
+    ['Cheese', undefined, 'dairy'],
+    ['Yogurt', undefined, 'dairy'],
+    ['Eggs', undefined, 'dairy'],
+    ['Toothpaste', undefined, 'beauty'],
+    ['Hair Care', undefined, 'beauty'],
+    ['Baby Food', undefined, 'baby'],
+    ['Vitamins', undefined, 'health'],
+    ['Cough &amp; Cold', undefined, 'health'],
+    ['Pet Food', undefined, 'pet'],
+    ['Bread', undefined, 'bakery'],
+    ['Lunch Meat', undefined, 'deli'],
+    ['Seafood', undefined, 'seafood'],
+    ['Soft Drinks', undefined, 'beverages'],
+    ['Wine', undefined, 'beverages'],
+    ['Snacks', undefined, 'snacks'],
+    ['Candy', undefined, 'snacks'],
+    ['Cereal', undefined, 'pantry'],
+    ['Laundry Detergent', undefined, 'household'],
+    ['Ice Cream', undefined, 'frozen'],
+    // category fallback for items with no/generic department
+    [null, ['produce'], 'produce'],
+    [null, ['meat', 'bogo'], 'meat'],
+    ['Kosher', ['meat'], 'meat'],
+    ['Grocery', ['dairy'], 'dairy'],
+    // catalog taxonomy paths resolve to their leaf segment
+    [['Grocery/Coffee and Creamers/Ground Coffee'], undefined, 'beverages'],
+    [['Dairy/Yogurt/Greek Yogurt'], undefined, 'grocery'],
     // anything else falls through to grocery
-    ['Coffee &amp; Tea', 'grocery'],
-    ['Soft Drinks', 'grocery'],
-    ['Kosher', 'grocery'],
-    [null, 'grocery'],
-    ['', 'grocery'],
-  ])('maps %s to %s', (input, expected) => {
-    expect(normalizeDepartment(input)).toBe(expected);
+    ['Coffee &amp; Tea', undefined, 'beverages'],
+    ['Kosher', undefined, 'grocery'],
+    [null, [], 'grocery'],
+    [null, null, 'grocery'],
+    ['', undefined, 'grocery'],
+  ])('maps %s + %s to %s', (input, categories, expected) => {
+    expect(normalizeDepartment(input, categories)).toBe(expected);
   });
 });
 
@@ -91,6 +120,11 @@ describe('decodeEntities', () => {
 
   it('handles null', () => {
     expect(decodeEntities(null)).toBe('');
+  });
+
+  it('handles non-string input', () => {
+    expect(decodeEntities(42 as unknown as string)).toBe('');
+    expect(decodeEntities(['a'] as unknown as string)).toBe('');
   });
 });
 
@@ -146,5 +180,199 @@ describe('mapToSale', () => {
   it('prefers enhanced image, falls back cleanly', () => {
     expect(mapToSale(saving({ enhancedImageUrl: null }), 'x').imageUrl).toBe('http://img/small.jpg');
     expect(mapToSale(saving({ enhancedImageUrl: null, imageUrl: null }), 'x').imageUrl).toBe('');
+  });
+
+  it('maps wa_itemCode to itemCode, null when absent', () => {
+    expect(mapToSale(saving({ wa_itemCode: 15167 }), 'x').itemCode).toBe('15167');
+    expect(mapToSale(saving({ wa_itemCode: 0 }), 'x').itemCode).toBeNull();
+  });
+
+  it('maps the promo detail line', () => {
+    expect(mapToSale(saving(), 'x').dealInfo).toBe('SAVE UP TO $9.49');
+    expect(mapToSale(saving({ additionalDealInfo: null }), 'x').dealInfo).toBeNull();
+  });
+});
+
+describe('mapCatalogProduct', () => {
+  const raw = {
+    baseProductId: 'RIO-PCI-119468',
+    itemCode: 15167,
+    title: 'Game Day Brownie Bite Platter 15-Count',
+    titleName: '',
+    imageUrls: { large: { a: 'https://img/large.jpg' } },
+    priceLine: '$13.99',
+    onSale: false,
+    facetWeeklyAd: false,
+    facetBOGO: false,
+    fauxTaxonomy: 'Deli',
+  };
+
+  it('maps catalog fields', async () => {
+    expect(mapCatalogProduct(raw)).toMatchObject({
+      productId: 'RIO-PCI-119468',
+      itemCode: '15167',
+      productName: 'Game Day Brownie Bite Platter 15-Count',
+      imageUrl: 'https://img/large.jpg',
+      priceText: '$13.99',
+      onSale: false,
+      isBogo: false,
+      department: 'deli',
+    });
+  });
+
+  it('prefers titleName and flags on-sale/BOGO', async () => {
+    const p = mapCatalogProduct({
+      ...raw,
+      titleName: 'Short Name',
+      onSale: true,
+      facetBOGO: true,
+      itemCode: 0,
+    });
+    expect(p?.productName).toBe('Short Name');
+    expect(p?.onSale).toBe(true);
+    expect(p?.isBogo).toBe(true);
+    expect(p?.itemCode).toBeNull();
+  });
+
+  it('returns null for nameless entries', async () => {
+    expect(mapCatalogProduct({ ...raw, title: '', titleName: '' })).toBeNull();
+  });
+});
+
+describe('searchCatalog', () => {
+  beforeEach(() => {
+    clearCatalogCache();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('parses embedded first-search-results HTML', async () => {
+    clearCatalogCache();
+    const payload = {
+      storeProducts: [
+        {
+          baseProductId: 'RIO-PCI-119468',
+          itemCode: 15167,
+          title: 'Game Day Brownie Bite Platter 15-Count',
+          titleName: '',
+          imageUrls: { large: { a: 'https://img/large.jpg' } },
+          priceLine: '$13.99',
+          onSale: true,
+          facetWeeklyAd: true,
+          facetBOGO: false,
+          fauxTaxonomy: 'Deli',
+        },
+      ],
+    };
+    const attr = JSON.stringify(payload).replace(/"/g, '&quot;');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, text: async () => `<div first-search-results="${attr}">` })),
+    );
+    const items = await searchCatalog('brownie');
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ productId: 'RIO-PCI-119468', itemCode: '15167', onSale: true });
+  });
+
+  it('returns [] when the payload is missing and caches per query', async () => {
+    clearCatalogCache();
+    const fetchMock = vi.fn(async () => ({ ok: true, text: async () => '<div>nope</div>' }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(searchCatalog('xyz')).resolves.toEqual([]);
+    await searchCatalog('xyz');
+    // failures are not cached, so it refetches
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('getWeeklyAdForStore cache', () => {
+  const apiItem = {
+    id: 'abc',
+    dcId: 0,
+    waId: -2023415491,
+    savingType: 'WeeklyAd',
+    savings: 'Buy 1 Get 1 FREE',
+    finalPrice: 0,
+    title: 'Hormel Marinated Pork Loin Tenderloin',
+    brand: 'Hormel',
+    description: null,
+    categories: ['meat', 'bogo'],
+    department: 'Meat',
+    imageUrl: null,
+    enhancedImageUrl: null,
+    wa_startDate: '2026-09-10T00:00:00Z',
+    wa_endDate: '2026-09-16T23:59:59Z',
+  };
+
+  let fetchCalls = 0;
+  let failFetch = false;
+
+  beforeEach(() => {
+    clearWeeklyAdCache();
+    fetchCalls = 0;
+    failFetch = false;
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      fetchCalls += 1;
+      if (failFetch) throw new Error('network down');
+      return { ok: true, json: async () => ({ Savings: [apiItem] }) };
+    }));
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('fetches once then serves repeat callers from cache', async () => {
+    const first = await getWeeklyAdForStore('1122');
+    const second = await getWeeklyAdForStore('1122');
+    expect(first).toHaveLength(1);
+    expect(second).toBe(first);
+    expect(fetchCalls).toBe(1);
+  });
+
+  it('shares one in-flight fetch between concurrent callers', async () => {
+    const [a, b] = await Promise.all([
+      getWeeklyAdForStore('1122'),
+      getWeeklyAdForStore('1122'),
+    ]);
+    expect(a).toHaveLength(1);
+    expect(b).toBe(a);
+    expect(fetchCalls).toBe(1);
+  });
+
+  it('caches per store', async () => {
+    await getWeeklyAdForStore('1122');
+    await getWeeklyAdForStore('1338');
+    expect(fetchCalls).toBe(2);
+  });
+
+  it('refetches after the 24h TTL expires', async () => {
+    await getWeeklyAdForStore('1122');
+    expect(fetchCalls).toBe(1);
+    vi.setSystemTime(Date.now() + WEEKLY_AD_TTL_MS + 1000);
+    await getWeeklyAdForStore('1122');
+    expect(fetchCalls).toBe(2);
+  });
+
+  it('forceRefresh bypasses the cache', async () => {
+    await getWeeklyAdForStore('1122');
+    await getWeeklyAdForStore('1122', { forceRefresh: true });
+    expect(fetchCalls).toBe(2);
+  });
+
+  it('serves stale cache when a refresh fails', async () => {
+    const first = await getWeeklyAdForStore('1122');
+    failFetch = true;
+    const second = await getWeeklyAdForStore('1122', { forceRefresh: true });
+    expect(second).toBe(first);
+  });
+
+  it('returns [] when fetch fails with nothing cached', async () => {
+    failFetch = true;
+    await expect(getWeeklyAdForStore('9999')).resolves.toEqual([]);
   });
 });

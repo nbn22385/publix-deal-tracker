@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
           keywords: watchlistItems.keywords,
           department: watchlistItems.department,
           storedProductId: watchlistItems.productId,
+          storedItemCode: watchlistItems.itemCode,
           joinedProductId: availableItems.productId,
         })
         .from(watchlistItems)
@@ -45,16 +46,20 @@ export async function POST(request: NextRequest) {
       const watchlistWithProducts = watchlistRows.map((row) => ({
         ...row,
         productId: row.storedProductId ?? row.joinedProductId,
+        itemCode: row.storedItemCode ?? null,
       }));
 
       const currentSales = await getSales(storeId, undefined, user.zipCode);
       const salesForMatch: MatchableSale[] = currentSales.map((item) => ({
         productId: item.productId,
+        itemCode: item.itemCode,
         productName: item.productName,
         department: item.department,
         salePrice: item.salePrice,
         isBogo: item.isBogo,
         imageUrl: item.imageUrl,
+        description: item.description,
+        dealInfo: item.dealInfo,
       }));
 
       await db.delete(availableItems).where(eq(availableItems.storeId, storeId));
@@ -69,6 +74,7 @@ export async function POST(request: NextRequest) {
           isBogo: item.isBogo,
           salePrice: item.salePrice,
           description: item.description,
+          itemCode: item.itemCode,
         }))
       ).returning();
 
@@ -84,6 +90,8 @@ export async function POST(request: NextRequest) {
               salePrice: item.salePrice,
               isBogo: item.isBogo,
               imageUrl: item.imageUrl,
+              description: item.description,
+              dealInfo: item.dealInfo,
             });
           }
         });
