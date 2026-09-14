@@ -89,13 +89,13 @@ export default function StorePicker({ userId, currentStore, onStoreSaved }: Stor
 
   if (currentStore && !changing) {
     return (
-      <div className="flex items-center justify-between gap-4">
-        <p className="truncate text-muted-foreground">
+      <div className="flex items-center justify-between gap-3">
+        <p className="min-w-0 flex-1 truncate text-muted-foreground">
           Shopping at: <span className="text-foreground">{currentStore.storeName}</span>
         </p>
         <button
           onClick={() => setChanging(true)}
-          className="shrink-0 rounded-full border border-zinc-600 px-4 py-2 text-sm font-semibold text-secondary-foreground hover:bg-secondary"
+          className="shrink-0 whitespace-nowrap rounded-full border border-zinc-600 px-3 py-1.5 text-sm font-semibold text-secondary-foreground hover:bg-secondary sm:px-4 sm:py-2"
         >
           Change Store
         </button>

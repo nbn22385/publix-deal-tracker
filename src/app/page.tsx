@@ -4,20 +4,20 @@ import ThemeToggle from "@/components/ThemeToggle";
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
-      <header className="mx-auto max-w-6xl px-6 py-6">
-        <nav className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-publix">Publix Deal Tracker</div>
-          <div className="flex items-center gap-4">
+      <header className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
+        <nav className="flex items-center justify-between gap-2">
+          <div className="whitespace-nowrap text-lg font-bold text-publix sm:text-2xl">Publix Deal Tracker</div>
+          <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link
               href="/sign-in"
-              className="rounded-full border border-publix px-5 py-2 text-publix hover:bg-publix/10"
+              className="whitespace-nowrap rounded-full border border-publix px-3 py-1.5 text-sm text-publix hover:bg-publix/10 sm:px-5 sm:py-2 sm:text-base"
             >
               Sign In
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-full bg-publix px-5 py-2 text-white hover:bg-publix-dark"
+              className="whitespace-nowrap rounded-full bg-publix px-3 py-1.5 text-sm text-white hover:bg-publix-dark sm:px-5 sm:py-2 sm:text-base"
             >
               Get Started
             </Link>

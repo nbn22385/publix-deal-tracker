@@ -22,36 +22,34 @@ export default function AppHeader() {
 
   return (
     <header className="border-b border-border bg-card">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-6 sm:gap-8">
-          <Link href="/watchlist" className="text-xl font-bold text-publix sm:text-2xl">
-            Publix Deal Tracker
-          </Link>
-          <nav className="flex gap-2">
-            {TABS.map((tab) => {
-              const active = pathname === tab.href;
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={
-                    active
-                      ? 'rounded-full bg-publix px-4 py-1.5 text-sm font-semibold text-white'
-                      : 'rounded-full px-4 py-1.5 text-sm text-secondary-foreground hover:bg-secondary'
-                  }
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-3 px-4 py-3 sm:flex-nowrap sm:px-6 sm:py-4">
+        <Link href="/watchlist" className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
+          Publix Deal Tracker
+        </Link>
+        <nav className="order-3 flex w-full gap-1 sm:order-none sm:w-auto sm:gap-2">
+          {TABS.map((tab) => {
+            const active = pathname === tab.href;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={
+                  active
+                    ? 'flex-1 rounded-full bg-publix px-3 py-1.5 text-center text-sm font-semibold text-white sm:flex-none sm:px-4'
+                    : 'flex-1 rounded-full px-3 py-1.5 text-center text-sm text-secondary-foreground hover:bg-secondary sm:flex-none sm:px-4'
+                }
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
           <span className="hidden text-muted-foreground md:inline">{session?.user?.email}</span>
           <ThemeToggle />
           <button
             onClick={handleSignOut}
-            className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-secondary-foreground hover:bg-secondary"
+            className="whitespace-nowrap rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-secondary-foreground hover:bg-secondary sm:px-4 sm:py-2 sm:text-sm"
           >
             Sign Out
           </button>
