@@ -2,8 +2,22 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { Resend } from 'resend';
 import { db } from './db';
+import { buildAuthOrigins } from './auth-origins';
+
+const { baseURL, trustedOrigins } = buildAuthOrigins({
+  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+  VERCEL_URL: process.env.VERCEL_URL,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+});
+
+if (!baseURL) {
+  console.error(
+    'BETTER_AUTH_URL is missing or invalid (expected e.g. https://your-app.vercel.app). Auth origin checks may fail.',
+  );
+}
 
 export const auth = betterAuth({
+  ...(baseURL ? { baseURL } : {}),
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
@@ -29,7 +43,5 @@ export const auth = betterAuth({
       });
     },
   },
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-  ],
+  trustedOrigins,
 });
