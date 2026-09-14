@@ -60,6 +60,18 @@ describe('getStores (live locator + local fallback)', () => {
     mockLiveStores.mockResolvedValue([]);
     await expect(getStores('99999')).rejects.toThrow(/No stores found for ZIP/);
   });
+
+  it('searches by coordinates without touching the seed list', async () => {
+    mockLiveStores.mockResolvedValue([live]);
+    const stores = await getStores({ latitude: 28.55, longitude: -81.33 });
+    expect(mockLiveStores).toHaveBeenCalledWith({ latitude: 28.55, longitude: -81.33 });
+    expect(stores).toEqual([{ ...live }]);
+  });
+
+  it('throws for coordinates with no live match', async () => {
+    mockLiveStores.mockResolvedValue([]);
+    await expect(getStores({ latitude: 0, longitude: 0 })).rejects.toThrow(/current location/);
+  });
 });
 
 describe('getSales (publix.com)', () => {

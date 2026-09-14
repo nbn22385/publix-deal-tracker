@@ -34,6 +34,23 @@ describe('POST /api/stores/search validation', () => {
     expect(body.stores).toHaveLength(1);
   });
 
+  it('returns stores for coordinates', async () => {
+    vi.mocked(getStores).mockResolvedValue([
+      { publixId: '1122', storeNum: '1122', name: 'Publix', address: 'a', city: 'Orlando', state: 'FL', zip: '32825' },
+    ]);
+    const res = await POST(
+      new NextRequest('http://localhost/api/stores/search', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ latitude: 28.55, longitude: -81.33 }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.stores).toHaveLength(1);
+    expect(vi.mocked(getStores)).toHaveBeenCalledWith({ latitude: 28.55, longitude: -81.33 });
+  });
+
   it('500s when the scraper throws', async () => {
     vi.mocked(getStores).mockRejectedValue(new Error('down'));
     const res = await POST(

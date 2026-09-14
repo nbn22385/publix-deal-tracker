@@ -383,18 +383,27 @@ export function mapLiveStore(store: NonNullable<StoreLocatorResponse['stores']>[
 
 /**
  * Live store search — same endpoint the locator sidebar on
- * publix.com/savings/weekly-ad/view-all uses. Returns [] on any failure
- * so callers can fall back to the curated seed list. Never throws.
+ * publix.com/savings/weekly-ad/view-all uses. Accepts a ZIP or raw
+ * coordinates. Returns [] on any failure so callers can fall back to
+ * the curated seed list. Never throws.
  */
-export async function searchLiveStores(zipCode: string, count = 10): Promise<LiveStore[]> {
+export async function searchLiveStores(
+  query: string | { latitude: number; longitude: number },
+  count = 10,
+): Promise<LiveStore[]> {
   const params = new URLSearchParams({
     types: 'R,G,H,N,S',
     count: String(count),
     distance: '50',
     includeOpenAndCloseDates: 'true',
-    zip: zipCode,
     isWebsite: 'true',
   });
+  if (typeof query === 'string') {
+    params.set('zip', query);
+  } else {
+    params.set('latitude', String(query.latitude));
+    params.set('longitude', String(query.longitude));
+  }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {

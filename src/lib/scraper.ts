@@ -55,7 +55,18 @@ function transformStore(raw: {
   };
 }
 
-export async function getStores(zip: string): Promise<Store[]> {
+export async function getStores(query: string | { latitude: number; longitude: number }): Promise<Store[]> {
+  // Coordinate search (browser geolocation): live locator only, since the
+  // seed list is ZIP-indexed.
+  if (typeof query !== 'string') {
+    const liveStores = await searchLiveStores(query);
+    if (liveStores.length > 0) {
+      return liveStores.map(transformStore);
+    }
+    throw new Error('No stores found near your current location - try a ZIP code instead');
+  }
+
+  const zip = query;
   const normalizedZip = zip.trim();
   const searchZip = isValidZip(normalizedZip) ? normalizedZip : normalizedZip.slice(0, 5);
 
