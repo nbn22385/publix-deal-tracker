@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { LocateFixed } from 'lucide-react';
 
 export interface StoreInfo {
   publixId: string;
@@ -29,9 +30,9 @@ export default function StorePicker({ userId, currentStore, onStoreSaved }: Stor
   const [loading, setLoading] = useState(false);
   const [changing, setChanging] = useState(false);
   const [error, setError] = useState('');
+  const [locating, setLocating] = useState(false);
 
-  const searchStores = async () => {
-    if (!zip) return;
+  const runSearch = async (body: Record<string, unknown>) => {
     setLoading(true);
     setHasSearched(true);
     setStores([]);
@@ -41,15 +42,53 @@ export default function StorePicker({ userId, currentStore, onStoreSaved }: Stor
       const res = await fetch('/api/stores/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zip }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Search failed');
       setStores(data.stores || []);
     } catch (err) {
       console.error('Error searching stores:', err);
-      setError('Could not search stores. Please try again.');
+      setError(err instanceof Error ? err.message : 'Could not search stores. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const searchStores = async () => {
+    if (!zip) return;
+    await runSearch({ zip });
+  };
+
+  const searchNearby = async () => {
+    if (!('geolocation' in navigator)) {
+      setError('Location is not available in this browser — enter your ZIP instead.');
+      return;
+    }
+    setLocating(true);
+    setError('');
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 }),
+      );
+      await runSearch({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    } catch (err) {
+      console.error('Error getting location:', err);
+      const denied =
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: number }).code === 1;
+      setError(
+        denied
+          ? 'Location access was denied — enter your ZIP instead.'
+          : 'Could not determine your location — enter your ZIP instead.',
+      );
+    } finally {
+      setLocating(false);
     }
   };
 
@@ -90,7 +129,7 @@ export default function StorePicker({ userId, currentStore, onStoreSaved }: Stor
   if (currentStore && !changing) {
     return (
       <div className="flex items-center justify-between gap-3">
-        <p className="min-w-0 flex-1 truncate text-muted-foreground">
+        <p className="min-w-0 flex-1 text-muted-foreground">
           Shopping at: <span className="text-foreground">{currentStore.storeName}</span>
         </p>
         <button
@@ -108,23 +147,32 @@ export default function StorePicker({ userId, currentStore, onStoreSaved }: Stor
       <h2 className="mb-4 text-xl font-semibold text-foreground">
         {currentStore ? 'Change Your Store' : 'Find Your Local Publix'}
       </h2>
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4">
         <input
           type="text"
           placeholder="Enter ZIP code"
           value={zip}
+          autoFocus
           onChange={(e) => setZip(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && searchStores()}
-          className="flex-1 rounded-md border border-zinc-700 bg-secondary px-4 py-2 text-foreground focus:border-publix focus:outline-none"
+          className="min-w-0 flex-1 rounded-md border border-zinc-700 bg-secondary px-4 py-2 text-foreground focus:border-publix focus:outline-none"
         />
         <button
           onClick={searchStores}
           disabled={loading || !zip}
-          className="rounded-full bg-publix px-6 py-2 font-semibold text-white hover:bg-publix-dark disabled:opacity-50"
+          className="shrink-0 rounded-full bg-publix px-4 py-2 font-semibold text-white hover:bg-publix-dark disabled:opacity-50 sm:px-6"
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
       </div>
+      <button
+        onClick={searchNearby}
+        disabled={loading || locating}
+        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-zinc-600 px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary disabled:opacity-50"
+      >
+        <LocateFixed className="h-4 w-4 text-publix" />
+        {locating ? 'Locating...' : 'Use current location'}
+      </button>
 
       {error && (
         <div className="mt-4 rounded-md bg-red-500/10 p-3 text-sm text-red-400">

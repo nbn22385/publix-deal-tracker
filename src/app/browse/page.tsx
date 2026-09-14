@@ -6,9 +6,10 @@ import { useSession } from '@/lib/auth-client';
 import { normalizeSearchText } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
 import { DEPARTMENTS } from '@/lib/scraper';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Check, X } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import StorePicker, { type StoreInfo } from '@/components/StorePicker';
+import { useStore } from '@/components/StoreProvider';
 
 interface SaleItem {
   productId: string;
@@ -32,11 +33,11 @@ interface WatchlistEntry {
 export default function Browse() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
+  const { store: userStore, refresh: refreshStore } = useStore();
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
   const [items, setItems] = useState<SaleItem[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [userStore, setUserStore] = useState<{ storeId: string; storeName: string } | null>(null);
 
   const [keywords, setKeywords] = useState('');
   const [keywordDepartment, setKeywordDepartment] = useState('');
@@ -56,10 +57,32 @@ export default function Browse() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      loadUserStore();
       loadWatchlist();
     }
   }, [session]);
+
+  // Follow the shared store (picked inline here on first run, or from the
+  // header dropdown afterwards).
+  useEffect(() => {
+    if (userStore) {
+      setSelectedStore({
+        publixId: userStore.storeId,
+        storeNum: userStore.storeId,
+        name: userStore.storeName,
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+      });
+      setSelectedDepartment('');
+      setSearchQuery('');
+      loadItems(userStore.storeId, '');
+    } else {
+      setSelectedStore(null);
+      setItems([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStore]);
 
   const loadWatchlist = async () => {
     if (!session?.user?.id) return;
@@ -79,34 +102,6 @@ export default function Browse() {
         (productId != null && entry.productId === productId) ||
         (itemCode != null && entry.itemCode === itemCode),
     );
-
-  const loadUserStore = async () => {
-    if (!session?.user?.id) return;
-
-    const res = await fetch(`/api/user/store?userId=${session.user.id}`);
-    const data = await res.json();
-
-    if (data.store) {
-      setUserStore(data.store);
-      setSelectedStore({
-        publixId: data.store.storeId,
-        storeNum: data.store.storeId,
-        name: data.store.storeName,
-        address: '',
-        city: '',
-        state: '',
-        zip: data.store.zipCode,
-      });
-      loadItems(data.store.storeId, '');
-    }
-  };
-
-  const handleStoreSaved = (store: StoreInfo) => {
-    setUserStore({ storeId: store.publixId, storeName: store.name });
-    setSelectedStore(store);
-    setSearchQuery('');
-    loadItems(store.publixId, '');
-  };
 
   const loadItems = async (storeId: string, department: string) => {
     setLoading(true);
@@ -254,17 +249,17 @@ export default function Browse() {
       <AppHeader />
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 rounded-xl bg-card p-6 shadow-lg border border-border">
-          {session.user?.id && (
-            <StorePicker
-              userId={session.user.id}
-              currentStore={userStore}
-              onStoreSaved={handleStoreSaved}
-            />
-          )}
-        </div>
-
-        {selectedStore && (
+        {!selectedStore ? (
+          <div className="rounded-xl bg-card p-6 shadow-lg border border-border sm:p-8">
+            {session.user?.id && (
+              <StorePicker
+                userId={session.user.id}
+                currentStore={null}
+                onStoreSaved={() => refreshStore()}
+              />
+            )}
+          </div>
+        ) : (
           <div className="rounded-xl bg-card p-8 shadow-lg border border-border">
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-foreground">Browse Products</h2>
@@ -295,22 +290,38 @@ export default function Browse() {
 
             {browseView === 'sales' ? (
             <>
-            <div className="mb-4 flex gap-2">
-              <input
-                type="text"
-                placeholder="Search items (e.g. chicken, yogurt)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 rounded-md border border-zinc-700 bg-secondary px-4 py-2 text-foreground placeholder:text-zinc-500 focus:border-publix focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="rounded-full border border-zinc-600 px-4 py-2 text-sm text-secondary-foreground hover:bg-secondary"
-                >
-                  Clear
-                </button>
-              )}
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search sales..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-md border border-zinc-700 bg-secondary py-2 pl-4 pr-10 text-foreground placeholder:text-zinc-500 focus:border-publix focus:outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-zinc-700 hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+                aria-label="Filter by category"
+                className="rounded-md border border-zinc-700 bg-secondary px-3 py-2 text-foreground focus:border-publix focus:outline-none sm:w-auto"
+              >
+                <option value="">All categories</option>
+                {Object.keys(DEPARTMENTS).map((dept) => (
+                  <option key={dept} value={dept}>
+                    {DEPARTMENTS[dept]}
+                  </option>
+                ))}
+              </select>
             </div>
             {searchQuery.trim() && !loading && (
               <p className="mb-4 text-sm text-muted-foreground">
@@ -323,24 +334,6 @@ export default function Browse() {
                 {addError}
               </div>
             )}
-
-            <div className="mb-6 flex flex-wrap gap-2">
-              <button
-                onClick={() => handleDepartmentChange('')}
-                className={`rounded-full px-3 py-1 text-sm ${!selectedDepartment ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
-              >
-                All
-              </button>
-              {Object.keys(DEPARTMENTS).map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => handleDepartmentChange(dept)}
-                  className={`rounded-full px-3 py-1 text-sm capitalize ${selectedDepartment === dept ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
-                >
-                  {DEPARTMENTS[dept]}
-                </button>
-              ))}
-            </div>
 
             {loading ? (
               <p className="text-center text-muted-foreground">Loading items...</p>
@@ -363,22 +356,23 @@ export default function Browse() {
                     {item.dealInfo && (
                       <p className="mb-2 text-xs font-bold text-foreground">{item.dealInfo}</p>
                     )}
-                    <div className="flex items-center justify-between">
-                      <span className={`font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className={`shrink-0 font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
                         {formatSalePrice(item.salePrice, item.isBogo)}
                       </span>
                       {(() => {
                         const entry = watchlistEntryFor(item.productId, item.itemCode);
                         if (entry) {
                           return (
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-publix/10 px-3 py-1 text-sm font-medium text-publix">
-                                ✓ On list
+                            <div className="flex shrink-0 items-center gap-1">
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-publix/10 px-2.5 py-1 text-sm font-medium text-publix">
+                                <Check className="h-3.5 w-3.5" />
+                                On list
                               </span>
                               <button
                                 onClick={() => removeFromWatchlist(entry.id)}
                                 disabled={removingId === entry.id}
-                                className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                                className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 {removingId === entry.id ? 'Removing...' : 'Remove'}

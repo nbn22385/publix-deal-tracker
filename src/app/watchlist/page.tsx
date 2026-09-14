@@ -8,6 +8,8 @@ import { filterSalesByWatchlist } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
 import { Trash2 } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
+import HelpContent from '@/components/HelpContent';
+import { useStore } from '@/components/StoreProvider';
 
 interface WatchlistItem {
   id: number;
@@ -32,7 +34,7 @@ interface CurrentSaleItem extends WatchlistItem {
 export default function Watchlist() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [userStore, setUserStore] = useState<{ storeId: string; storeName: string } | null>(null);
+  const { store: userStore, loading: storeLoading } = useStore();
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [currentSales, setCurrentSales] = useState<CurrentSaleItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -44,31 +46,25 @@ export default function Watchlist() {
   }, [session, isPending, router]);
 
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user && !storeLoading) {
       loadData();
     }
-  }, [session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, userStore, storeLoading]);
 
   const loadData = async () => {
     if (!session?.user?.id) return;
 
     try {
-      const [storeRes, watchlistRes] = await Promise.all([
-        fetch(`/api/user/store?userId=${session.user.id}`),
-        fetch(`/api/watchlist?userId=${session.user.id}`),
-      ]);
-
-      const storeData = await storeRes.json();
-      if (storeData.store) {
-        setUserStore(storeData.store);
-      }
-
+      const watchlistRes = await fetch(`/api/watchlist?userId=${session.user.id}`);
       const watchlistData = await watchlistRes.json();
       setWatchlist(watchlistData.items || []);
 
-      if (storeData.store) {
-        const salesData = await fetch(`/api/stores/${storeData.store.storeId}/items`).then(r => r.json());
+      if (userStore) {
+        const salesData = await fetch(`/api/stores/${userStore.storeId}/items`).then(r => r.json());
         setCurrentSales(salesData.items || []);
+      } else {
+        setCurrentSales([]);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -107,23 +103,28 @@ export default function Watchlist() {
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         {!userStore ? (
-          <div className="rounded-xl bg-card p-8 text-center shadow-lg border border-border">
-            <h2 className="mb-4 text-2xl font-semibold text-foreground">Welcome to Publix Deal Tracker!</h2>
-            <p className="mb-6 text-muted-foreground">
-              To get started, select your local Publix store.
-            </p>
-            <Link
-              href="/browse"
-              className="inline-block rounded-full bg-publix px-6 py-3 font-semibold text-white hover:bg-publix-dark"
-            >
-              Select Your Store
-            </Link>
-          </div>
+          <>
+            <div className="rounded-xl bg-card p-8 text-center shadow-lg border border-border">
+              <h2 className="mb-4 text-2xl font-semibold text-foreground">Welcome to Publix Deal Tracker!</h2>
+              <p className="mb-6 text-muted-foreground">
+                To get started, select your local Publix store.
+              </p>
+              <Link
+                href="/browse"
+                className="inline-block rounded-full bg-publix px-6 py-3 font-semibold text-white hover:bg-publix-dark"
+              >
+                Select Your Store
+              </Link>
+            </div>
+            <div className="mt-6 rounded-xl bg-card p-6 shadow-lg border border-border sm:p-8">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">How it works</h2>
+              <HelpContent />
+            </div>
+          </>
         ) : (
           <>
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-foreground">Watchlist</h1>
-              <p className="text-muted-foreground">Shopping at: {userStore.storeName}</p>
             </div>
 
             {matchingSales.length > 0 && (
