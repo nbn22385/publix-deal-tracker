@@ -18,11 +18,11 @@ export const auth = betterAuth({
       }
       const resend = new Resend(apiKey);
       await resend.emails.send({
-        from: 'Publix BOGO Alert <onboarding@resend.dev>',
+        from: 'Publix Deal Tracker <onboarding@resend.dev>',
         to: user.email,
-        subject: 'Reset your Publix BOGO Alert password',
+        subject: 'Reset your Publix Deal Tracker password',
         html: `
-          <p>You requested a password reset for Publix BOGO Alert.</p>
+          <p>You requested a password reset for Publix Deal Tracker.</p>
           <p><a href="${url}">Click here to reset your password</a></p>
           <p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>
         `,

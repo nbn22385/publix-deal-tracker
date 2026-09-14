@@ -39,13 +39,13 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #2d810e;">🔥 Publix BOGO Alert!</h1>
+      <h1 style="color: #2d810e;">🔥 Publix Deal Tracker!</h1>
       <p style="color: #6b7280;">Items matching your watchlist at <strong>${escapeHtml(storeName)}</strong>:</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         ${itemsHtml}
       </div>
       <p style="margin-top: 24px; color: #9ca3af; font-size: 12px;">
-        You received this email because you have items in your Publix BOGO Alert watchlist.
+        You received this email because you have items in your Publix Deal Tracker watchlist.
         <br>
         <a href="#" style="color: #6b7280;">Manage your watchlist</a>
       </p>

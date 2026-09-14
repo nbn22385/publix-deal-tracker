@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
           const emailHtml = generateEmailHtml(matchedItems.map(m => m.item), user.storeName);
           
           await resend.emails.send({
-            from: 'Publix BOGO Alert <onboarding@resend.dev>',
+            from: 'Publix Deal Tracker <onboarding@resend.dev>',
             to: userEmail,
             subject: buildWeeklyAdSubject(matchedItems.length, user.storeName),
             html: emailHtml,

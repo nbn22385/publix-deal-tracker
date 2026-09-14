@@ -51,7 +51,7 @@ function ResetPasswordForm() {
     <div className="w-full max-w-md rounded-xl bg-card p-8 shadow-lg border border-border">
       <div className="mb-8 text-center">
         <Link href="/" className="text-2xl font-bold text-publix">
-          Publix BOGO Alert
+          Publix Deal Tracker
         </Link>
         <h1 className="mt-4 text-2xl font-semibold text-foreground">Reset Password</h1>
         <p className="mt-2 text-muted-foreground">Choose a new password (min 8 characters).</p>

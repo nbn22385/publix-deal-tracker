@@ -25,7 +25,7 @@ export default function AppHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <div className="flex items-center gap-6 sm:gap-8">
           <Link href="/watchlist" className="text-xl font-bold text-publix sm:text-2xl">
-            Publix BOGO Alert
+            Publix Deal Tracker
           </Link>
           <nav className="flex gap-2">
             {TABS.map((tab) => {

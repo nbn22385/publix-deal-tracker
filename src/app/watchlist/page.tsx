@@ -108,7 +108,7 @@ export default function Watchlist() {
       <main className="mx-auto max-w-6xl px-6 py-8">
         {!userStore ? (
           <div className="rounded-xl bg-card p-8 text-center shadow-lg border border-border">
-            <h2 className="mb-4 text-2xl font-semibold text-foreground">Welcome to Publix BOGO Alert!</h2>
+            <h2 className="mb-4 text-2xl font-semibold text-foreground">Welcome to Publix Deal Tracker!</h2>
             <p className="mb-6 text-muted-foreground">
               To get started, select your local Publix store.
             </p>

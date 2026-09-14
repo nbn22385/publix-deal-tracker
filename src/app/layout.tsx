@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Publix BOGO Alert - Never Miss a Deal",
+  title: "Publix Deal Tracker - Never Miss a Deal",
   description: "Get notified when your favorite Publix items go on sale or BOGO",
 };
 

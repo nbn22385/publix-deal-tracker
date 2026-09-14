@@ -6,7 +6,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="mx-auto max-w-6xl px-6 py-6">
         <nav className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-publix">Publix BOGO Alert</div>
+          <div className="text-2xl font-bold text-publix">Publix Deal Tracker</div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link
@@ -98,7 +98,7 @@ export default function Home() {
 
       <footer className="mt-24 border-t border-border bg-background py-8">
         <div className="mx-auto max-w-6xl px-6 text-center text-zinc-500">
-          <p>&copy; 2026 Publix BOGO Alert. Not affiliated with Publix.</p>
+          <p>&copy; 2026 Publix Deal Tracker. Not affiliated with Publix.</p>
         </div>
       </footer>
     </div>
