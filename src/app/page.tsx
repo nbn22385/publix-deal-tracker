@@ -19,7 +19,7 @@ export default function Home() {
               href="/sign-up"
               className="whitespace-nowrap rounded-full bg-publix px-3 py-1.5 text-sm text-white hover:bg-publix-dark sm:px-5 sm:py-2 sm:text-base"
             >
-              Get Started
+              Sign Up
             </Link>
           </div>
         </nav>
@@ -31,7 +31,7 @@ export default function Home() {
             Never Miss a Publix Deal
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-xl text-muted-foreground">
-            Get instant notifications when your favorite items go on sale or BOGO. 
+            Get weekly notifications when your favorite items go on sale or BOGO.
             Save money on every grocery trip.
           </p>
           <Link
@@ -40,30 +40,6 @@ export default function Home() {
           >
             Start Saving Today - It&apos;s Free
           </Link>
-        </div>
-
-        <div className="mt-24 grid gap-8 md:grid-cols-3">
-          <div className="rounded-xl bg-card p-6 shadow-lg border border-border">
-            <div className="mb-4 text-4xl">🔍</div>
-            <h3 className="mb-2 text-xl font-semibold text-foreground">Track Your Favorites</h3>
-            <p className="text-muted-foreground">
-              Add items you buy regularly to your watchlist and get notified when they go on sale.
-            </p>
-          </div>
-          <div className="rounded-xl bg-card p-6 shadow-lg border border-border">
-            <div className="mb-4 text-4xl">📧</div>
-            <h3 className="mb-2 text-xl font-semibold text-foreground">Weekly Alerts</h3>
-            <p className="text-muted-foreground">
-              Every Thursday, get a comprehensive email with all your watchlist items that are on sale.
-            </p>
-          </div>
-          <div className="rounded-xl bg-card p-6 shadow-lg border border-border">
-            <div className="mb-4 text-4xl">💰</div>
-            <h3 className="mb-2 text-xl font-semibold text-foreground">Save Money</h3>
-            <p className="text-muted-foreground">
-              Never miss a BOGO deal again. Our alerts help you maximize your savings at Publix.
-            </p>
-          </div>
         </div>
 
         <div className="mt-24 text-center">
