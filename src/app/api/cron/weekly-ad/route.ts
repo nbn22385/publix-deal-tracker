@@ -7,7 +7,7 @@ import { generateEmailHtml, buildWeeklyAdSubject } from '@/lib/email';
 import { Resend } from 'resend';
 import { eq } from 'drizzle-orm';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -111,7 +111,8 @@ export async function POST(request: NextRequest) {
         
         if (userEmail) {
           const emailHtml = generateEmailHtml(matchedItems.map(m => m.item), user.storeName);
-          
+          const resend = new Resend(process.env.RESEND_API_KEY);
+
           await resend.emails.send({
             from: 'Publix Deal Tracker <onboarding@resend.dev>',
             to: userEmail,
