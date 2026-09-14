@@ -32,7 +32,7 @@ export default function SignIn() {
       // Wait a moment for session to be set
       await new Promise(resolve => setTimeout(resolve, 500));
       router.refresh();
-      router.push('/dashboard');
+      router.push('/watchlist');
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
@@ -41,14 +41,14 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-      <div className="w-full max-w-md rounded-xl bg-[#171717] p-8 shadow-lg border border-zinc-800">
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="w-full max-w-md rounded-xl bg-card p-8 shadow-lg border border-border">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold text-green-500">
+          <Link href="/" className="text-2xl font-bold text-publix">
             Publix BOGO Alert
           </Link>
-          <h1 className="mt-4 text-2xl font-semibold text-white">Sign In</h1>
-          <p className="mt-2 text-zinc-400">Welcome back!</p>
+          <h1 className="mt-4 text-2xl font-semibold text-foreground">Sign In</h1>
+          <p className="mt-2 text-muted-foreground">Welcome back!</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,27 +59,27 @@ export default function SignIn() {
           )}
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-300">
+            <label className="mb-1 block text-sm font-medium text-secondary-foreground">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full rounded-md border border-zinc-700 bg-secondary px-3 py-2 text-foreground focus:border-publix focus:outline-none focus:ring-1 focus:ring-publix"
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-300">
+            <label className="mb-1 block text-sm font-medium text-secondary-foreground">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full rounded-md border border-zinc-700 bg-secondary px-3 py-2 text-foreground focus:border-publix focus:outline-none focus:ring-1 focus:ring-publix"
               required
             />
           </div>
@@ -87,21 +87,21 @@ export default function SignIn() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-green-500 py-2 font-semibold text-black hover:bg-green-400 disabled:opacity-50"
+            className="w-full rounded-full bg-publix py-2 font-semibold text-white hover:bg-publix-dark disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-400">
-          <Link href="/forgot-password" className="text-green-500 hover:underline">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          <Link href="/forgot-password" className="text-publix hover:underline">
             Forgot password?
           </Link>
         </p>
 
-        <p className="mt-2 text-center text-sm text-zinc-400">
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/sign-up" className="text-green-500 hover:underline">
+          <Link href="/sign-up" className="text-publix hover:underline">
             Sign up
           </Link>
         </p>

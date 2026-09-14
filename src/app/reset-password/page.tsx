@@ -48,13 +48,13 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-xl bg-[#171717] p-8 shadow-lg border border-zinc-800">
+    <div className="w-full max-w-md rounded-xl bg-card p-8 shadow-lg border border-border">
       <div className="mb-8 text-center">
-        <Link href="/" className="text-2xl font-bold text-green-500">
+        <Link href="/" className="text-2xl font-bold text-publix">
           Publix BOGO Alert
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold text-white">Reset Password</h1>
-        <p className="mt-2 text-zinc-400">Choose a new password (min 8 characters).</p>
+        <h1 className="mt-4 text-2xl font-semibold text-foreground">Reset Password</h1>
+        <p className="mt-2 text-muted-foreground">Choose a new password (min 8 characters).</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,28 +65,28 @@ function ResetPasswordForm() {
         )}
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-300">
+          <label className="mb-1 block text-sm font-medium text-secondary-foreground">
             New password
           </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+            className="w-full rounded-md border border-zinc-700 bg-secondary px-3 py-2 text-foreground focus:border-publix focus:outline-none focus:ring-1 focus:ring-publix"
             required
             minLength={8}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-300">
+          <label className="mb-1 block text-sm font-medium text-secondary-foreground">
             Confirm password
           </label>
           <input
             type="password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+            className="w-full rounded-md border border-zinc-700 bg-secondary px-3 py-2 text-foreground focus:border-publix focus:outline-none focus:ring-1 focus:ring-publix"
             required
             minLength={8}
           />
@@ -95,7 +95,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-green-500 py-2 font-semibold text-black hover:bg-green-400 disabled:opacity-50"
+          className="w-full rounded-full bg-publix py-2 font-semibold text-white hover:bg-publix-dark disabled:opacity-50"
         >
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>
@@ -106,8 +106,8 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-      <Suspense fallback={<div className="text-xl text-zinc-400">Loading...</div>}>
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Suspense fallback={<div className="text-xl text-muted-foreground">Loading...</div>}>
         <ResetPasswordForm />
       </Suspense>
     </div>

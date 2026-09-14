@@ -22,8 +22,8 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       <h3 style="margin: 8px 0 4px; font-size: 16px;">${escapeHtml(item.productName)}</h3>
       <p style="margin: 0; color: #6b7280; font-size: 14px;">${escapeHtml(item.department)}</p>
       ${item.description ? `<p style="margin: 4px 0 0; color: #6b7280; font-size: 13px;">${escapeHtml(item.description)}</p>` : ''}
-      ${item.dealInfo ? `<p style="margin: 4px 0 0; font-size: 13px; font-weight: bold; color: #059669;">${escapeHtml(item.dealInfo)}</p>` : ''}
-      <p style="margin: 4px 0 0; font-size: 20px; font-weight: bold; color: ${item.isBogo ? '#059669' : '#2563eb'};">
+      ${item.dealInfo ? `<p style="margin: 4px 0 0; font-size: 13px; font-weight: bold; color: #2d810e;">${escapeHtml(item.dealInfo)}</p>` : ''}
+      <p style="margin: 4px 0 0; font-size: 20px; font-weight: bold; color: ${item.isBogo ? '#2d810e' : '#2563eb'};">
         ${escapeHtml(formatSalePrice(item.salePrice, item.isBogo))}
       </p>
     </div>
@@ -39,7 +39,7 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #059669;">🔥 Publix BOGO Alert!</h1>
+      <h1 style="color: #2d810e;">🔥 Publix BOGO Alert!</h1>
       <p style="color: #6b7280;">Items matching your watchlist at <strong>${escapeHtml(storeName)}</strong>:</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         ${itemsHtml}
