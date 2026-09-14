@@ -1,65 +1,104 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717]">
+      <header className="mx-auto max-w-6xl px-6 py-6">
+        <nav className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-green-500">Publix BOGO Alert</div>
+          <div className="flex gap-4">
+            <Link
+              href="/sign-in"
+              className="rounded-full border border-green-500 px-5 py-2 text-green-500 hover:bg-green-500/10"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="rounded-full bg-green-500 px-5 py-2 text-black hover:bg-green-400"
+            >
+              Get Started
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6 py-16">
+        <div className="text-center">
+          <h1 className="mb-6 text-5xl font-bold text-white">
+            Never Miss a Publix Deal
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mb-10 max-w-2xl text-xl text-zinc-400">
+            Get instant notifications when your favorite items go on sale or BOGO. 
+            Save money on every grocery trip.
           </p>
+          <Link
+            href="/sign-up"
+            className="inline-block rounded-full bg-green-500 px-8 py-4 text-lg font-semibold text-black hover:bg-green-400"
+          >
+            Start Saving Today - It&apos;s Free
+          </Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="mt-24 grid gap-8 md:grid-cols-3">
+          <div className="rounded-xl bg-[#171717] p-6 shadow-lg border border-zinc-800">
+            <div className="mb-4 text-4xl">🔍</div>
+            <h3 className="mb-2 text-xl font-semibold text-white">Track Your Favorites</h3>
+            <p className="text-zinc-400">
+              Add items you buy regularly to your watchlist and get notified when they go on sale.
+            </p>
+          </div>
+          <div className="rounded-xl bg-[#171717] p-6 shadow-lg border border-zinc-800">
+            <div className="mb-4 text-4xl">📧</div>
+            <h3 className="mb-2 text-xl font-semibold text-white">Weekly Alerts</h3>
+            <p className="text-zinc-400">
+              Every Thursday, get a comprehensive email with all your watchlist items that are on sale.
+            </p>
+          </div>
+          <div className="rounded-xl bg-[#171717] p-6 shadow-lg border border-zinc-800">
+            <div className="mb-4 text-4xl">💰</div>
+            <h3 className="mb-2 text-xl font-semibold text-white">Save Money</h3>
+            <p className="text-zinc-400">
+              Never miss a BOGO deal again. Our alerts help you maximize your savings at Publix.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-24 text-center">
+          <h2 className="mb-6 text-3xl font-bold text-white">How It Works</h2>
+          <div className="mx-auto max-w-3xl">
+            <ol className="flex flex-col gap-6 text-left">
+              <li className="flex items-start gap-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500 text-black font-bold">1</span>
+                <div>
+                  <strong className="text-lg text-white">Create an account</strong>
+                  <p className="text-zinc-400">Sign up with your email and select your local Publix store.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500 text-black font-bold">2</span>
+                <div>
+                  <strong className="text-lg text-white">Add items to your watchlist</strong>
+                  <p className="text-zinc-400">Browse current sales or add keywords for items you want to track.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500 text-black font-bold">3</span>
+                <div>
+                  <strong className="text-lg text-white">Get notified</strong>
+                  <p className="text-zinc-400">Receive weekly emails when your items go on sale.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
         </div>
       </main>
+
+      <footer className="mt-24 border-t border-zinc-800 bg-[#0a0a0a] py-8">
+        <div className="mx-auto max-w-6xl px-6 text-center text-zinc-500">
+          <p>&copy; 2026 Publix BOGO Alert. Not affiliated with Publix.</p>
+        </div>
+      </footer>
     </div>
   );
 }
