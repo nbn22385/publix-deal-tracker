@@ -12,11 +12,11 @@ export function getStoredTheme(): 'light' | 'dark' {
   } catch {
     /* storage unavailable — fall through to default */
   }
-  return 'dark';
+  return 'light';
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setTheme(getStoredTheme());

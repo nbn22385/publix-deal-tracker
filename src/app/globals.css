@@ -1,14 +1,36 @@
 @import "tailwindcss";
 
 :root {
+  --background: #f4f4f5;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #2d810e;
+  --primary-foreground: #ffffff;
+  --secondary: #e4e4e7;
+  --secondary-foreground: #3f3f46;
+  --muted: #e4e4e7;
+  --muted-foreground: #52525b;
+  --accent: #e4e4e7;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #2d810e;
+  --price: #1d4ed8;
+}
+
+/* Dark theme (opt-in via the toggle). */
+:root[data-theme='dark'] {
   --background: #0a0a0a;
   --foreground: #ededed;
   --card: #171717;
   --card-foreground: #ededed;
   --popover: #171717;
   --popover-foreground: #ededed;
-  --primary: #2d810e;
-  --primary-foreground: #ffffff;
   --secondary: #262626;
   --secondary-foreground: #ededed;
   --muted: #262626;
@@ -19,24 +41,7 @@
   --destructive-foreground: #ededed;
   --border: #262626;
   --input: #262626;
-  --ring: #2d810e;
   --price: #60a5fa;
-}
-
-/* Light theme. Dark values above are the default (:root). */
-:root[data-theme='light'] {
-  --background: #f4f4f5;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --card-foreground: #18181b;
-  --secondary: #e4e4e7;
-  --secondary-foreground: #3f3f46;
-  --muted: #e4e4e7;
-  --muted-foreground: #52525b;
-  --border: #e4e4e7;
-  --input: #d4d4d8;
-  --ring: #2d810e;
-  --price: #1d4ed8;
 }
 
 /* Publix brand greens (from publix.com design tokens:
