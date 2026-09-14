@@ -14,7 +14,7 @@ describe('email helpers', () => {
       ],
       'Tampa Palms',
     );
-    expect(html).toContain('BOGO FREE!');
+    expect(html).toContain('Buy 1 Get 1 Free');
     expect(html).toContain('$2.50');
     expect(html).toContain('Tampa Palms');
   });
@@ -35,5 +35,23 @@ describe('email helpers', () => {
       'Store',
     );
     expect(html).not.toContain('<img');
+  });
+
+  it('renders description and deal info when present', () => {
+    const html = generateEmailHtml(
+      [{
+        productId: '1',
+        productName: 'Bare Baked Chips',
+        department: 'snacks',
+        salePrice: 'Buy 1 Get 1 FREE',
+        isBogo: true,
+        imageUrl: '',
+        description: 'Free item of equal or lesser price.',
+        dealInfo: 'SAVE UP TO $6.49',
+      }],
+      'Store',
+    );
+    expect(html).toContain('Free item of equal or lesser price.');
+    expect(html).toContain('SAVE UP TO $6.49');
   });
 });

@@ -1,4 +1,5 @@
 import type { MatchableSale } from './matching';
+import { formatSalePrice } from './format';
 
 function escapeHtml(value: string): string {
   return value
@@ -20,8 +21,10 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       ${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.productName)}" style="width: 100px; height: 100px; object-fit: contain;">` : ''}
       <h3 style="margin: 8px 0 4px; font-size: 16px;">${escapeHtml(item.productName)}</h3>
       <p style="margin: 0; color: #6b7280; font-size: 14px;">${escapeHtml(item.department)}</p>
+      ${item.description ? `<p style="margin: 4px 0 0; color: #6b7280; font-size: 13px;">${escapeHtml(item.description)}</p>` : ''}
+      ${item.dealInfo ? `<p style="margin: 4px 0 0; font-size: 13px; font-weight: bold; color: #059669;">${escapeHtml(item.dealInfo)}</p>` : ''}
       <p style="margin: 4px 0 0; font-size: 20px; font-weight: bold; color: ${item.isBogo ? '#059669' : '#2563eb'};">
-        ${item.isBogo ? 'BOGO FREE!' : `$${escapeHtml(item.salePrice)}`}
+        ${escapeHtml(formatSalePrice(item.salePrice, item.isBogo))}
       </p>
     </div>
   `,
