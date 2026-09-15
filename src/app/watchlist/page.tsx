@@ -328,7 +328,7 @@ export default function Watchlist() {
       </main>
       {deletedToast && (
         <Toast
-          message="Item removed from watchlist"
+          message="Item removed"
           actionLabel="Undo"
           onAction={handleUndoDelete}
           onClose={() => setDeletedToast(null)}
