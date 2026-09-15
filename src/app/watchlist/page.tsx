@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { filterSalesByWatchlist } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ChevronDown } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import HelpContent from '@/components/HelpContent';
 import { useStore } from '@/components/StoreProvider';
@@ -39,6 +39,11 @@ export default function Watchlist() {
   const [currentSales, setCurrentSales] = useState<CurrentSaleItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [saleFilter, setSaleFilter] = useState<'all' | 'bogo' | 'priced'>('all');
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
+
+  const toggleExpanded = (productId: string | null) => {
+    setExpandedProductId((prev) => (prev === productId ? null : productId));
+  };
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -171,7 +176,7 @@ export default function Watchlist() {
                 )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {visibleSales.map((item) => (
-                    <div key={item.id} className="rounded-lg border border-zinc-700 bg-card p-4 shadow-lg">
+                    <div key={item.productId} className="rounded-lg border border-zinc-700 bg-card p-4 shadow-lg">
                       {item.imageUrl && (
                         <img
                           src={item.imageUrl}
@@ -180,14 +185,32 @@ export default function Watchlist() {
                         />
                       )}
                       <h3 className="mb-1 line-clamp-2 text-sm font-medium text-foreground">{item.productName}</h3>
-                      <p className={`mb-2 text-sm font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
-                        {formatSalePrice(item.salePrice, item.isBogo)}
-                      </p>
-                      {item.description && (
-                        <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
-                      )}
-                      {item.dealInfo && (
-                        <p className="mb-2 text-xs font-bold text-muted-foreground">{item.dealInfo}</p>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className={`text-sm font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                          {formatSalePrice(item.salePrice, item.isBogo)}
+                        </p>
+                        {(item.description || item.dealInfo) && (
+                          <button
+                            onClick={() => toggleExpanded(item.productId)}
+                            aria-expanded={expandedProductId === item.productId}
+                            aria-label={expandedProductId === item.productId ? `Hide details for ${item.productName}` : `Show details for ${item.productName}`}
+                            className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          >
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${expandedProductId === item.productId ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+                        )}
+                      </div>
+                      {expandedProductId === item.productId && (
+                        <>
+                          {item.description && (
+                            <p className="mb-2 text-xs text-muted-foreground">{item.description}</p>
+                          )}
+                          {item.dealInfo && (
+                            <p className="mb-2 text-xs font-bold text-muted-foreground">{item.dealInfo}</p>
+                          )}
+                        </>
                       )}
                     </div>
                   ))}
