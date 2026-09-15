@@ -357,10 +357,9 @@ export default function Browse() {
                       />
                     )}
                     <h3 className="mb-1 line-clamp-2 text-sm font-medium text-foreground">{item.productName}</h3>
-                    <p className={`mb-2 text-base font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                    <p className={`mb-2 text-sm font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
                       {formatSalePrice(item.salePrice, item.isBogo)}
                     </p>
-                    <p className="mb-2 text-xs text-zinc-500 capitalize">{item.department}</p>
                     {item.description && (
                       <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
                     )}

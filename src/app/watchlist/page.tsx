@@ -143,18 +143,15 @@ export default function Watchlist() {
                         />
                       )}
                       <h3 className="mb-1 font-medium text-foreground">{item.productName}</h3>
-                      <p className="mb-2 text-sm text-zinc-500">{item.itemDepartment}</p>
+                      <p className={`mb-2 text-base font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                        {formatSalePrice(item.salePrice, item.isBogo)}
+                      </p>
                       {item.description && (
                         <p className="mb-2 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
                       )}
                       {item.dealInfo && (
                         <p className="mb-2 text-sm font-bold text-foreground">{item.dealInfo}</p>
                       )}
-                      <div className="flex items-center justify-between">
-                        <span className={`text-lg font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
-                          {formatSalePrice(item.salePrice, item.isBogo)}
-                        </span>
-                      </div>
                     </div>
                   ))}
                 </div>
