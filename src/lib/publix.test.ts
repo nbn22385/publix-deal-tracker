@@ -375,4 +375,15 @@ describe('getWeeklyAdForStore cache', () => {
     failFetch = true;
     await expect(getWeeklyAdForStore('9999')).resolves.toEqual([]);
   });
+
+  it('dedupes ad items repeated under multiple departments', async () => {
+    const dup = { ...apiItem, waId: -2023415069, title: 'Publix Peanut Butter' };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => ({ Savings: [dup, dup] }) })),
+    );
+    const sales = await getWeeklyAdForStore('1122', { forceRefresh: true });
+    expect(sales).toHaveLength(1);
+    expect(sales[0]?.productId).toBe('-2023415069');
+  });
 });

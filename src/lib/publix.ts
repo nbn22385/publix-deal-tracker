@@ -292,11 +292,16 @@ export function clearWeeklyAdCache(storeId?: string): void {
 
 async function fetchAllWeeklyAdPages(storeId: string): Promise<PublixSale[]> {
   const sales: PublixSale[] = [];
+  const seen = new Set<string>();
   for (let page = 1; page <= MAX_PAGES; page++) {
     const items = await fetchSavingsPage(storeId, page);
     if (items.length === 0) break;
     for (const item of items) {
-      if (item.savingType === 'WeeklyAd' && item.title) {
+      // Publix lists the same ad item under multiple departments; dedupe
+      // by productId so React keys (and per-card state keyed off them)
+      // stay unique.
+      if (item.savingType === 'WeeklyAd' && item.title && !seen.has(String(item.waId))) {
+        seen.add(String(item.waId));
         sales.push(mapToSale(item, storeId));
       }
     }
