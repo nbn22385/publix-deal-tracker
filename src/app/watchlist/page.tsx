@@ -38,6 +38,7 @@ export default function Watchlist() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [currentSales, setCurrentSales] = useState<CurrentSaleItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [saleFilter, setSaleFilter] = useState<'all' | 'bogo' | 'priced'>('all');
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -96,6 +97,15 @@ export default function Watchlist() {
   }
 
   const matchingSales = filterSalesByWatchlist(watchlist, currentSales);
+  const bogoCount = matchingSales.filter((item) => item.isBogo).length;
+  const pricedCount = matchingSales.length - bogoCount;
+  const showSaleFilter = bogoCount > 0 && pricedCount > 0;
+  const visibleSales =
+    !showSaleFilter || saleFilter === 'all'
+      ? matchingSales
+      : saleFilter === 'bogo'
+        ? matchingSales.filter((item) => item.isBogo)
+        : matchingSales.filter((item) => !item.isBogo);
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,8 +142,27 @@ export default function Watchlist() {
                 <h2 className="mb-4 text-xl font-semibold text-foreground">
                   Currently On Sale From Your Watchlist
                 </h2>
+                {showSaleFilter && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {(
+                      [
+                        ['all', `All (${matchingSales.length})`],
+                        ['bogo', `Buy 1 Get 1 Free (${bogoCount})`],
+                        ['priced', `Priced deals (${pricedCount})`],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        key={value}
+                        onClick={() => setSaleFilter(value)}
+                        className={`rounded-full px-4 py-1.5 text-sm font-medium ${saleFilter === value ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {matchingSales.map((item) => (
+                  {visibleSales.map((item) => (
                     <div key={item.id} className="rounded-lg border border-zinc-700 bg-card p-4 shadow-lg">
                       {item.imageUrl && (
                         <img
