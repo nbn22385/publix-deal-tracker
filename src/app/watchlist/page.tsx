@@ -146,19 +146,27 @@ export default function Watchlist() {
                   <div className="mb-4 flex flex-wrap gap-2">
                     {(
                       [
-                        ['all', `All (${matchingSales.length})`],
-                        ['bogo', `Buy 1 Get 1 Free (${bogoCount})`],
-                        ['priced', `Priced deals (${pricedCount})`],
+                        ['all', 'All', matchingSales.length],
+                        ['bogo', 'Buy 1 Get 1 Free', bogoCount],
+                        ['priced', 'Priced deals', pricedCount],
                       ] as const
-                    ).map(([value, label]) => (
-                      <button
-                        key={value}
-                        onClick={() => setSaleFilter(value)}
-                        className={`rounded-full px-4 py-1.5 text-sm font-medium ${saleFilter === value ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                    ).map(([value, label, count]) => {
+                      const active = saleFilter === value;
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => setSaleFilter(value)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${active ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
+                        >
+                          {label}
+                          <span
+                            className={`rounded-full px-1.5 py-0.5 text-xs font-bold leading-none ${active ? 'bg-white/25 text-white' : 'bg-publix/10 text-publix'}`}
+                          >
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
