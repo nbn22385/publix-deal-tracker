@@ -41,11 +41,11 @@ export default function ListButton({ state, itemName, onToggle }: ListButtonProp
       }
       className={
         added
-          ? 'inline-flex shrink-0 items-center gap-1 rounded bg-publix px-2 py-1 text-[13px] font-medium text-white hover:bg-publix-dark disabled:opacity-70'
-          : 'inline-flex shrink-0 items-center gap-1 rounded bg-publix-tint px-2 py-1 text-[13px] font-medium text-publix-darker hover:bg-publix-light disabled:opacity-70'
+          ? 'inline-flex shrink-0 items-center gap-1.5 rounded bg-publix px-2.5 py-1 text-[13px] font-bold text-white hover:bg-publix-dark disabled:opacity-70'
+          : 'inline-flex shrink-0 items-center gap-1.5 rounded bg-publix-tint px-2.5 py-1 text-[13px] font-bold text-publix-darker hover:bg-publix-light disabled:opacity-70'
       }
     >
-      {added ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+      {added ? <Check className="h-4 w-4" strokeWidth={2.75} /> : <Plus className="h-4 w-4" strokeWidth={2.75} />}
       <span className="whitespace-nowrap">{label}</span>
     </button>
   );

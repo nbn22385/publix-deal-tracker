@@ -357,6 +357,9 @@ export default function Browse() {
                       />
                     )}
                     <h3 className="mb-1 line-clamp-2 text-sm font-medium text-foreground">{item.productName}</h3>
+                    <p className={`mb-2 text-base font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                      {formatSalePrice(item.salePrice, item.isBogo)}
+                    </p>
                     <p className="mb-2 text-xs text-zinc-500 capitalize">{item.department}</p>
                     {item.description && (
                       <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
@@ -364,10 +367,7 @@ export default function Browse() {
                     {item.dealInfo && (
                       <p className="mb-2 text-xs font-bold text-foreground">{item.dealInfo}</p>
                     )}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className={`shrink-0 font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
-                        {formatSalePrice(item.salePrice, item.isBogo)}
-                      </span>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {(() => {
                         const entry = watchlistEntryFor(item.productId, item.itemCode);
                         let state: 'idle' | 'adding' | 'added' | 'removing' | 'error' = 'idle';
