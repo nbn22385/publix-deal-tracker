@@ -150,7 +150,7 @@ export default function Watchlist() {
                         <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
                       )}
                       {item.dealInfo && (
-                        <p className="mb-2 text-xs font-bold text-foreground">{item.dealInfo}</p>
+                        <p className="mb-2 text-xs font-bold text-muted-foreground">{item.dealInfo}</p>
                       )}
                     </div>
                   ))}
