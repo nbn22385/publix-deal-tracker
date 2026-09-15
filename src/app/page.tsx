@@ -6,18 +6,18 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
         <nav className="flex items-center justify-between gap-2">
-          <div className="whitespace-nowrap text-lg font-bold text-publix sm:text-2xl">Publix Deal Tracker</div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">Publix Deal Tracker</div>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link
               href="/sign-in"
-              className="whitespace-nowrap rounded-full border border-publix px-3 py-1.5 text-sm text-publix hover:bg-publix/10 sm:px-5 sm:py-2 sm:text-base"
+              className="whitespace-nowrap rounded-md border border-publix px-3 py-1.5 text-sm text-publix hover:bg-publix/10 sm:px-5 sm:py-2 sm:text-base"
             >
               Sign In
             </Link>
             <Link
               href="/sign-up"
-              className="whitespace-nowrap rounded-full bg-publix px-3 py-1.5 text-sm text-white hover:bg-publix-dark sm:px-5 sm:py-2 sm:text-base"
+              className="whitespace-nowrap rounded-md bg-publix px-3 py-1.5 text-sm text-white hover:bg-publix-dark sm:px-5 sm:py-2 sm:text-base"
             >
               Sign Up
             </Link>

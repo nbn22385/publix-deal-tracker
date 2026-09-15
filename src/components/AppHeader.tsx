@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { MapPin, MapPinOff, X } from 'lucide-react';
+import { MapPin, MapPinOff, X, LogOut } from 'lucide-react';
 import { authClient, useSession } from '@/lib/auth-client';
+import { filterSalesByWatchlist } from '@/lib/matching';
 import ThemeToggle from '@/components/ThemeToggle';
 import HelpButton from '@/components/HelpButton';
 import StorePicker from '@/components/StorePicker';
@@ -20,13 +21,41 @@ export default function AppHeader() {
   const router = useRouter();
   const { data: session } = useSession();
   const { store, refresh } = useStore();
-  const [storeOpen, setStoreOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const [saleCount, setSaleCount] = useState(0);
 
   const handleSignOut = async () => {
     await authClient.signOut();
     router.push('/');
   };
+
+  // On-sale count for the Watchlist tab badge. Refreshed on navigation
+  // since the header stays mounted across tab switches.
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId || !store) {
+      setSaleCount(0);
+      return;
+    }
+    (async () => {
+      try {
+        const [watchlistRes, salesRes] = await Promise.all([
+          fetch(`/api/watchlist?userId=${userId}`),
+          fetch(`/api/stores/${store.storeId}/items`),
+        ]);
+        const [watchlistData, salesData] = await Promise.all([
+          watchlistRes.json(),
+          salesRes.json(),
+        ]);
+        setSaleCount(
+          filterSalesByWatchlist(watchlistData.items || [], salesData.items || []).length,
+        );
+      } catch (error) {
+        console.error('Error loading header sale count:', error);
+      }
+    })();
+  }, [session, store, pathname]);
+  const [storeOpen, setStoreOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!storeOpen) return;
@@ -61,6 +90,7 @@ export default function AppHeader() {
         >
           {TABS.map((tab) => {
             const active = pathname === tab.href;
+            const showBadge = tab.href === '/watchlist' && saleCount > 0;
             return (
               <Link
                 key={tab.href}
@@ -72,7 +102,16 @@ export default function AppHeader() {
                     : 'flex-1 rounded-full px-3 py-1.5 text-center text-sm text-secondary-foreground hover:text-foreground sm:flex-none sm:px-4'
                 }
               >
-                {tab.label}
+                <span className="inline-flex items-center gap-1.5">
+                  {tab.label}
+                  {showBadge && (
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-xs font-bold leading-none ${active ? 'bg-white/25 text-white' : 'bg-publix/10 text-publix'}`}
+                    >
+                      {saleCount}
+                    </span>
+                  )}
+                </span>
               </Link>
             );
           })}
@@ -96,7 +135,15 @@ export default function AppHeader() {
           <HelpButton />
           <button
             onClick={handleSignOut}
-            className="whitespace-nowrap rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-secondary-foreground hover:bg-secondary sm:px-4 sm:py-2 sm:text-sm"
+            aria-label="Sign out"
+            title="Sign out"
+            className="rounded-md border border-zinc-700 p-2 text-secondary-foreground hover:bg-secondary sm:hidden"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="hidden whitespace-nowrap rounded-md border border-zinc-700 px-4 py-2 text-sm text-secondary-foreground hover:bg-secondary sm:inline-block"
           >
             Sign Out
           </button>
