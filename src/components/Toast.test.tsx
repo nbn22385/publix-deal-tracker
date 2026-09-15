@@ -58,4 +58,16 @@ describe('Toast', () => {
     expect(onAction).toHaveBeenCalledOnce();
     cleanup();
   });
+
+  it('renders danger tone with red background', () => {
+    const { container } = render(
+      <Toast message="Item removed" actionLabel="Undo" onAction={() => {}} onClose={() => {}} tone="danger" />,
+    );
+    const status = screen.getByRole('status');
+    expect(status.className).toContain('bg-red-600');
+    expect(status.className).not.toContain('bg-publix');
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDefined();
+    cleanup();
+  });
 });

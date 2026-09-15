@@ -330,6 +330,7 @@ export default function Watchlist() {
         <Toast
           message="Item removed"
           actionLabel="Undo"
+          tone="danger"
           onAction={handleUndoDelete}
           onClose={() => setDeletedToast(null)}
           durationMs={5000}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Check, ListChecks, X } from 'lucide-react';
+import { Check, ListChecks, Trash2, X } from 'lucide-react';
 
 interface ToastProps {
   message: string;
@@ -12,9 +12,10 @@ interface ToastProps {
   onAction?: () => void;
   onClose: () => void;
   durationMs?: number;
+  tone?: 'success' | 'danger';
 }
 
-export default function Toast({ message, linkHref, linkLabel, actionLabel, onAction, onClose, durationMs = 4000 }: ToastProps) {
+export default function Toast({ message, linkHref, linkLabel, actionLabel, onAction, onClose, durationMs = 4000, tone = 'success' }: ToastProps) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -26,16 +27,20 @@ export default function Toast({ message, linkHref, linkLabel, actionLabel, onAct
   return (
     <div
       role="status"
-      className="fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-publix px-4 py-3 text-white shadow-xl"
+      className={`fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-xl px-4 py-3 text-white shadow-xl ${tone === 'danger' ? 'bg-red-600' : 'bg-publix'}`}
     >
-      <Check className="h-5 w-5 shrink-0" />
+      {tone === 'danger' ? (
+        <Trash2 className="h-5 w-5 shrink-0" />
+      ) : (
+        <Check className="h-5 w-5 shrink-0" />
+      )}
       <p className="min-w-0 flex-1 truncate text-sm font-medium" title={message}>{message}</p>
       {linkHref && linkLabel && (
         <Link
           href={linkHref}
           className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-sm font-bold underline underline-offset-2 hover:bg-white/15"
         >
-          <ListChecks className="h-4 w-4" />
+          <ListChecks className="h-5 w-5" />
           {linkLabel}
         </Link>
       )}
