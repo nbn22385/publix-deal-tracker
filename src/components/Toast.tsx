@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Check, X } from 'lucide-react';
+import { Check, ListChecks, X } from 'lucide-react';
 
 interface ToastProps {
   message: string;
@@ -33,8 +33,9 @@ export default function Toast({ message, linkHref, linkLabel, actionLabel, onAct
       {linkHref && linkLabel && (
         <Link
           href={linkHref}
-          className="shrink-0 rounded-md px-2 py-1 text-sm font-bold underline underline-offset-2 hover:bg-white/15"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-sm font-bold underline underline-offset-2 hover:bg-white/15"
         >
+          <ListChecks className="h-4 w-4" />
           {linkLabel}
         </Link>
       )}
