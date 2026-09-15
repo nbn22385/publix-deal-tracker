@@ -43,7 +43,6 @@ export default function Browse() {
 
   const [keywords, setKeywords] = useState('');
   const [keywordDepartment, setKeywordDepartment] = useState('');
-  const [keywordSuccess, setKeywordSuccess] = useState(false);
   const [browseView, setBrowseView] = useState<'sales' | 'keyword'>('sales');
   const [searchQuery, setSearchQuery] = useState('');
   const [addError, setAddError] = useState('');
@@ -198,7 +197,6 @@ export default function Browse() {
   const addKeywordAlert = async () => {
     if (!session?.user?.id || !keywords) return;
     setAddError('');
-    setKeywordSuccess(false);
 
     try {
       const res = await fetch('/api/watchlist', {
@@ -221,7 +219,7 @@ export default function Browse() {
 
       setKeywords('');
       setKeywordDepartment('');
-      setKeywordSuccess(true);
+      setToastMessage('Alert created');
       loadWatchlist();
     } catch (error) {
       console.error('Error adding keyword alert:', error);
@@ -410,7 +408,6 @@ export default function Browse() {
                   <button
                     onClick={() => {
                       setKeywords(searchQuery.trim());
-                      setKeywordSuccess(false);
                       setBrowseView('keyword');
                     }}
                     className="rounded-full bg-publix px-6 py-2 font-semibold text-white hover:bg-publix-dark"
@@ -430,12 +427,6 @@ export default function Browse() {
               <p className="mb-6 text-muted-foreground">
                 Create a keyword alert and you&apos;ll receive an email every Thursday when there&apos;s a match.
               </p>
-
-              {keywordSuccess && (
-                <div className="mb-4 rounded-md bg-publix/10 p-3 text-sm text-publix-light">
-                  Alert created — check the Watchlist tab to see it.
-                </div>
-              )}
 
               <div className="space-y-4">
                 <div>

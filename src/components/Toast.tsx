@@ -30,11 +30,11 @@ export default function Toast({ message, linkHref, linkLabel, actionLabel, onAct
       className={`fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,28rem)] -translate-x-1/2 items-center gap-3 rounded-xl px-4 py-3 shadow-xl ${tone === 'danger' ? 'border border-border bg-card' : 'bg-publix text-white'}`}
     >
       {tone === 'danger' ? (
-        <Trash2 className="h-5 w-5 shrink-0 text-red-500" />
+        <Trash2 className="h-5 w-5 shrink-0 text-red-400" />
       ) : (
         <Check className="h-5 w-5 shrink-0" />
       )}
-      <p className={`min-w-0 flex-1 truncate text-sm font-medium ${tone === 'danger' ? 'text-red-500' : ''}`} title={message}>{message}</p>
+      <p className={`min-w-0 flex-1 truncate text-sm font-medium ${tone === 'danger' ? 'text-red-400' : ''}`} title={message}>{message}</p>
       {linkHref && linkLabel && (
         <Link
           href={linkHref}
@@ -47,7 +47,7 @@ export default function Toast({ message, linkHref, linkLabel, actionLabel, onAct
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className={`shrink-0 rounded-md px-3 py-1 text-sm font-bold ${tone === 'danger' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-white/20 hover:bg-white/30'}`}
+          className={`shrink-0 rounded-md px-3 py-1 text-sm font-bold ${tone === 'danger' ? 'bg-red-400/10 text-red-400 hover:bg-red-400/20' : 'bg-white/20 hover:bg-white/30'}`}
         >
           {actionLabel}
         </button>
