@@ -158,7 +158,7 @@ export default function Browse() {
       } else {
         loadWatchlist();
       }
-      setToastMessage('Item added to watchlist');
+      setToastMessage('Item added');
     } catch (error) {
       console.error('Error adding to watchlist:', error);
       setAddError('Could not add this item. Please try again.');
@@ -486,7 +486,7 @@ export default function Browse() {
         <Toast
           message={toastMessage}
           linkHref="/watchlist"
-          linkLabel="View watchlist"
+          linkLabel="View list"
           onClose={() => setToastMessage(null)}
         />
       )}
