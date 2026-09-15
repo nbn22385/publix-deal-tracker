@@ -8,6 +8,7 @@ import { formatSalePrice } from '@/lib/format';
 import { DEPARTMENTS } from '@/lib/scraper';
 import { X } from 'lucide-react';
 import ListButton from '@/components/ListButton';
+import Toast from '@/components/Toast';
 import AppHeader from '@/components/AppHeader';
 import StorePicker, { type StoreInfo } from '@/components/StorePicker';
 import { useStore } from '@/components/StoreProvider';
@@ -46,6 +47,7 @@ export default function Browse() {
   const [browseView, setBrowseView] = useState<'sales' | 'keyword'>('sales');
   const [searchQuery, setSearchQuery] = useState('');
   const [addError, setAddError] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [failedId, setFailedId] = useState<string | number | null>(null);
@@ -156,6 +158,7 @@ export default function Browse() {
       } else {
         loadWatchlist();
       }
+      setToastMessage('Item added to watchlist');
     } catch (error) {
       console.error('Error adding to watchlist:', error);
       setAddError('Could not add this item. Please try again.');
@@ -479,6 +482,14 @@ export default function Browse() {
           </div>
         )}
       </main>
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          linkHref="/watchlist"
+          linkLabel="View watchlist"
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 }
