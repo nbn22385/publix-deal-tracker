@@ -211,21 +211,35 @@ export default function Watchlist() {
                 <div className="space-y-3">
                   {watchlist.map((item) => (
                     <div key={item.id} className="flex items-center justify-between rounded-xl bg-card p-4 shadow-lg border border-border">
-                      <div>
+                      <div className="min-w-0">
                         {item.alertType === 'specific_item' ? (
                           <>
                             <p className="font-medium text-foreground">{item.productName || 'Unknown Item'}</p>
-                            <p className="text-sm text-zinc-500">{item.itemDepartment} - Specific item</p>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {item.itemDepartment && (
+                                <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
+                                  {item.itemDepartment}
+                                </span>
+                              )}
+                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                Specific item
+                              </span>
+                            </div>
                             {item.description && (
-                              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+                              <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
                             )}
                           </>
                         ) : (
                           <>
                             <p className="font-medium text-foreground">{item.keywords}</p>
-                            <p className="text-sm text-zinc-500">
-                              {item.alertDepartment || 'All departments'} - Keyword alert
-                            </p>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
+                                {item.alertDepartment || 'All departments'}
+                              </span>
+                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                Keyword
+                              </span>
+                            </div>
                           </>
                         )}
                       </div>
