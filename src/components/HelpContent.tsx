@@ -12,7 +12,7 @@ const STEPS = [
     body: 'Use Notify me for anything (even off-sale items) — matching ignores accents and case.',
   },
   {
-    title: 'Get the Thursday email',
+    title: 'Get notified',
     body: 'Every Thursday we email everything on your watchlist that’s on sale.',
   },
 ];
