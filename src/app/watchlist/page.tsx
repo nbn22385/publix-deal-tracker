@@ -122,7 +122,13 @@ export default function Watchlist() {
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       if (data?.item) {
-        const restored = data.item as WatchlistItem;
+        // POST returns the raw row shape (department); the page reads
+        // the GET shape (alertDepartment) — translate or the restored
+        // row loses its department.
+        const restored = {
+          ...data.item,
+          alertDepartment: data.item.department ?? null,
+        } as WatchlistItem;
         setWatchlist((prev) => {
           const next = [...prev];
           next.splice(Math.min(deletedToast.index, next.length), 0, restored);
