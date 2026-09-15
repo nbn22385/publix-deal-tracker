@@ -197,7 +197,7 @@ export default function Watchlist() {
                     {(
                       [
                         ['all', 'All', matchingSales.length],
-                        ['bogo', 'Buy 1 Get 1 Free', bogoCount],
+                        ['bogo', 'BOGO', bogoCount],
                         ['priced', 'Priced deals', pricedCount],
                       ] as const
                     ).map(([value, label, count]) => {
