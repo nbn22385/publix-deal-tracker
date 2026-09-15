@@ -37,6 +37,31 @@ describe('email helpers', () => {
     expect(html).not.toContain('<img');
   });
 
+  it('matches card order: title, price, description, deal info, no department', () => {
+    const html = generateEmailHtml(
+      [{
+        productId: '1',
+        productName: 'Bare Baked Chips',
+        department: 'snacks',
+        salePrice: 'Buy 1 Get 1 FREE',
+        isBogo: true,
+        imageUrl: '',
+        description: 'Free item of equal or lesser price.',
+        dealInfo: 'SAVE UP TO $6.49',
+      }],
+      'Store',
+    );
+    const titleAt = html.indexOf('Bare Baked Chips');
+    const priceAt = html.indexOf('Buy 1 Get 1 Free');
+    const descAt = html.indexOf('Free item of equal or lesser price.');
+    const dealAt = html.indexOf('SAVE UP TO $6.49');
+    expect(titleAt).toBeGreaterThan(-1);
+    expect(priceAt).toBeGreaterThan(titleAt);
+    expect(descAt).toBeGreaterThan(priceAt);
+    expect(dealAt).toBeGreaterThan(descAt);
+    expect(html).not.toContain('>snacks<');
+  });
+
   it('renders description and deal info when present', () => {
     const html = generateEmailHtml(
       [{

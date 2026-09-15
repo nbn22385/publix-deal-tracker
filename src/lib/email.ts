@@ -19,13 +19,12 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       (item) => `
     <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
       ${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.productName)}" style="width: 100px; height: 100px; object-fit: contain;">` : ''}
-      <h3 style="margin: 8px 0 4px; font-size: 16px;">${escapeHtml(item.productName)}</h3>
-      <p style="margin: 0; color: #6b7280; font-size: 14px;">${escapeHtml(item.department)}</p>
-      ${item.description ? `<p style="margin: 4px 0 0; color: #6b7280; font-size: 13px;">${escapeHtml(item.description)}</p>` : ''}
-      ${item.dealInfo ? `<p style="margin: 4px 0 0; font-size: 13px; font-weight: bold; color: #2d810e;">${escapeHtml(item.dealInfo)}</p>` : ''}
-      <p style="margin: 4px 0 0; font-size: 20px; font-weight: bold; color: ${item.isBogo ? '#2d810e' : '#2563eb'};">
+      <h3 style="margin: 8px 0 4px; font-size: 14px; font-weight: 500;">${escapeHtml(item.productName)}</h3>
+      <p style="margin: 0 0 8px; font-size: 14px; font-weight: bold; color: ${item.isBogo ? '#2d810e' : '#2563eb'};">
         ${escapeHtml(formatSalePrice(item.salePrice, item.isBogo))}
       </p>
+      ${item.description ? `<p style="margin: 4px 0 0; color: #6b7280; font-size: 12px;">${escapeHtml(item.description)}</p>` : ''}
+      ${item.dealInfo ? `<p style="margin: 4px 0 0; font-size: 12px; font-weight: bold; color: #111827;">${escapeHtml(item.dealInfo)}</p>` : ''}
     </div>
   `,
     )
