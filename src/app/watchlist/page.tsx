@@ -134,23 +134,23 @@ export default function Watchlist() {
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {matchingSales.map((item) => (
-                    <div key={item.id} className="rounded-xl bg-card p-4 shadow-lg border border-border">
+                    <div key={item.id} className="rounded-lg border border-zinc-700 bg-card p-4 shadow-lg">
                       {item.imageUrl && (
                         <img
                           src={item.imageUrl}
                           alt={item.productName || ''}
-                          className="mb-3 h-24 w-full object-contain"
+                          className="mb-3 h-20 w-full object-contain"
                         />
                       )}
-                      <h3 className="mb-1 font-medium text-foreground">{item.productName}</h3>
-                      <p className={`mb-2 text-base font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
+                      <h3 className="mb-1 line-clamp-2 text-sm font-medium text-foreground">{item.productName}</h3>
+                      <p className={`mb-2 text-sm font-bold ${item.isBogo ? 'text-publix' : 'text-price'}`}>
                         {formatSalePrice(item.salePrice, item.isBogo)}
                       </p>
                       {item.description && (
-                        <p className="mb-2 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+                        <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
                       )}
                       {item.dealInfo && (
-                        <p className="mb-2 text-sm font-bold text-foreground">{item.dealInfo}</p>
+                        <p className="mb-2 text-xs font-bold text-foreground">{item.dealInfo}</p>
                       )}
                     </div>
                   ))}
