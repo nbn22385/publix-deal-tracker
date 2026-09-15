@@ -6,7 +6,8 @@ import { useSession } from '@/lib/auth-client';
 import { normalizeSearchText } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
 import { DEPARTMENTS } from '@/lib/scraper';
-import { Plus, Trash2, Check, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import ListButton from '@/components/ListButton';
 import AppHeader from '@/components/AppHeader';
 import StorePicker, { type StoreInfo } from '@/components/StorePicker';
 import { useStore } from '@/components/StoreProvider';
@@ -47,6 +48,7 @@ export default function Browse() {
   const [addError, setAddError] = useState('');
   const [addingId, setAddingId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [failedId, setFailedId] = useState<string | number | null>(null);
   const [watchlist, setWatchlist] = useState<WatchlistEntry[]>([]);
 
   useEffect(() => {
@@ -122,6 +124,7 @@ export default function Browse() {
   const addToWatchlist = async (item: { productId: string; productName: string; itemCode: string | null }) => {
     if (!session?.user?.id || !selectedStore) return;
     setAddError('');
+    setFailedId(null);
     setAddingId(item.productId);
 
     try {
@@ -143,6 +146,7 @@ export default function Browse() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setAddError(data?.error || 'Could not add this item. Please try again.');
+        setFailedId(item.productId);
         return;
       }
 
@@ -155,6 +159,7 @@ export default function Browse() {
     } catch (error) {
       console.error('Error adding to watchlist:', error);
       setAddError('Could not add this item. Please try again.');
+      setFailedId(item.productId);
     } finally {
       setAddingId(null);
     }
@@ -163,6 +168,7 @@ export default function Browse() {
   const removeFromWatchlist = async (watchlistId: number) => {
     if (!session?.user?.id) return;
     setAddError('');
+    setFailedId(null);
     setRemovingId(watchlistId);
 
     try {
@@ -172,6 +178,7 @@ export default function Browse() {
 
       if (!res.ok) {
         setAddError('Could not remove this item. Please try again.');
+        setFailedId(watchlistId);
         return;
       }
 
@@ -179,6 +186,7 @@ export default function Browse() {
     } catch (error) {
       console.error('Error removing from watchlist:', error);
       setAddError('Could not remove this item. Please try again.');
+      setFailedId(watchlistId);
     } finally {
       setRemovingId(null);
     }
@@ -362,33 +370,23 @@ export default function Browse() {
                       </span>
                       {(() => {
                         const entry = watchlistEntryFor(item.productId, item.itemCode);
-                        if (entry) {
-                          return (
-                            <div className="flex shrink-0 items-center gap-1">
-                              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-publix/10 px-2.5 py-1 text-sm font-medium text-publix">
-                                <Check className="h-3.5 w-3.5" />
-                                On list
-                              </span>
-                              <button
-                                onClick={() => removeFromWatchlist(entry.id)}
-                                disabled={removingId === entry.id}
-                                className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                {removingId === entry.id ? 'Removing...' : 'Remove'}
-                              </button>
-                            </div>
-                          );
+                        let state: 'idle' | 'adding' | 'added' | 'removing' | 'error' = 'idle';
+                        if (failedId === (entry?.id ?? item.productId)) {
+                          state = 'error';
+                        } else if (entry) {
+                          state = removingId === entry.id ? 'removing' : 'added';
+                        } else if (addingId === item.productId) {
+                          state = 'adding';
                         }
                         return (
-                          <button
-                            onClick={() => addToWatchlist(item)}
-                            disabled={addingId === item.productId}
-                            className="inline-flex items-center gap-1 rounded-full bg-publix px-3 py-1 text-sm text-white hover:bg-publix-dark disabled:opacity-50"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            {addingId === item.productId ? 'Adding...' : 'Add'}
-                          </button>
+                          <ListButton
+                            state={state}
+                            itemName={item.productName}
+                            onToggle={() => {
+                              if (entry) removeFromWatchlist(entry.id);
+                              else addToWatchlist(item);
+                            }}
+                          />
                         );
                       })()}
                     </div>
