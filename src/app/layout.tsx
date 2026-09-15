@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Get notified when your favorite Publix items go on sale or BOGO",
   icons: {
     icon: [{ url: '/icon.png', type: 'image/png' }],
-    apple: [{ url: '/icon.png' }],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 };
 

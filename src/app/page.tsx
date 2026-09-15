@@ -15,6 +15,7 @@ export default function Home() {
               width={32}
               height={32}
               priority
+              quality={100}
               className="h-8 w-8 rounded-lg sm:h-9 sm:w-9"
             />
             <span className="hidden whitespace-nowrap sm:inline">Publix Deal Tracker</span>

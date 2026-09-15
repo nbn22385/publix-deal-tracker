@@ -90,6 +90,7 @@ export default function AppHeader() {
             width={32}
             height={32}
             priority
+            quality={100}
             className="h-8 w-8 rounded-lg"
           />
           <span className="hidden whitespace-nowrap text-base font-bold text-publix sm:inline sm:text-2xl">
