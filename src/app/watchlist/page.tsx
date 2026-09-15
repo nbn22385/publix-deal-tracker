@@ -9,11 +9,13 @@ import { formatSalePrice } from '@/lib/format';
 import { Trash2, ChevronDown } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import HelpContent from '@/components/HelpContent';
+import Toast from '@/components/Toast';
 import { useStore } from '@/components/StoreProvider';
 
 interface WatchlistItem {
   id: number;
   alertType: string;
+  availableItemId: number | null;
   keywords: string | null;
   alertDepartment: string | null;
   itemDepartment: string | null;
@@ -40,6 +42,7 @@ export default function Watchlist() {
   const [loadingData, setLoadingData] = useState(true);
   const [saleFilter, setSaleFilter] = useState<'all' | 'bogo' | 'priced'>('all');
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
+  const [deletedToast, setDeletedToast] = useState<{ item: WatchlistItem; index: number } | null>(null);
 
   const toggleExpanded = (productId: string | null) => {
     setExpandedProductId((prev) => (prev === productId ? null : productId));
@@ -82,11 +85,53 @@ export default function Watchlist() {
   const handleDeleteWatchlistItem = async (id: number) => {
     if (!session?.user?.id) return;
 
-    await fetch(`/api/watchlist?id=${id}&userId=${session.user.id}`, {
+    const index = watchlist.findIndex((item) => item.id === id);
+    const deleted = index >= 0 ? watchlist[index] : undefined;
+    if (!deleted) return;
+
+    const res = await fetch(`/api/watchlist?id=${id}&userId=${session.user.id}`, {
       method: 'DELETE',
     });
+    if (!res.ok) return;
 
+    // Last delete wins if several happen within the undo window.
+    setDeletedToast({ item: deleted, index });
     setWatchlist(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleUndoDelete = async () => {
+    if (!session?.user?.id || !deletedToast) return;
+    const { item } = deletedToast;
+    setDeletedToast(null);
+
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: session.user.id,
+          availableItemId: item.availableItemId,
+          productId: item.productId,
+          productName: item.productName,
+          itemCode: item.itemCode,
+          keywords: item.keywords,
+          department: item.alertDepartment,
+          alertType: item.alertType,
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (data?.item) {
+        const restored = data.item as WatchlistItem;
+        setWatchlist((prev) => {
+          const next = [...prev];
+          next.splice(Math.min(deletedToast.index, next.length), 0, restored);
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring watchlist item:', error);
+    }
   };
 
   if (isPending || loadingData) {
@@ -281,6 +326,15 @@ export default function Watchlist() {
           </>
         )}
       </main>
+      {deletedToast && (
+        <Toast
+          message="Item removed from watchlist"
+          actionLabel="Undo"
+          onAction={handleUndoDelete}
+          onClose={() => setDeletedToast(null)}
+          durationMs={5000}
+        />
+      )}
     </div>
   );
 }

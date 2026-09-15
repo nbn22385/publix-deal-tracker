@@ -46,4 +46,16 @@ describe('Toast', () => {
     expect(onClose).toHaveBeenCalledOnce();
     cleanup();
   });
+
+  it('renders an action button without a link', () => {
+    const onAction = vi.fn();
+    render(
+      <Toast message="Item removed from watchlist" actionLabel="Undo" onAction={onAction} onClose={() => {}} />,
+    );
+    expect(screen.queryByRole('link')).toBeNull();
+    const action = screen.getByRole('button', { name: 'Undo' });
+    fireEvent.click(action);
+    expect(onAction).toHaveBeenCalledOnce();
+    cleanup();
+  });
 });
