@@ -1,12 +1,24 @@
 import Link from "next/link";
+import Image from "next/image";
 import ThemeToggle from "@/components/ThemeToggle";
+import logo from "@/app/icon.png";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
         <nav className="flex items-center justify-between gap-2">
-          <div className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">Publix Deal Tracker</div>
+          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
+            <Image
+              src={logo}
+              alt="Publix Deal Tracker"
+              width={32}
+              height={32}
+              priority
+              className="h-8 w-8 rounded-lg sm:h-9 sm:w-9"
+            />
+            Publix Deal Tracker
+          </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <Link

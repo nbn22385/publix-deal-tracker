@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import logo from '@/app/icon.png';
 import { MapPin, MapPinOff, X, LogOut } from 'lucide-react';
 import { authClient, useSession } from '@/lib/auth-client';
 import { filterSalesByWatchlist } from '@/lib/matching';
@@ -81,8 +83,18 @@ export default function AppHeader() {
   return (
     <header className="border-b border-border bg-card">
       <div className="relative mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-3 px-4 py-3 sm:flex-nowrap sm:px-6 sm:py-4">
-        <Link href="/watchlist" className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
-          Publix Deal Tracker
+        <Link href="/watchlist" className="flex shrink-0 items-center gap-2">
+          <Image
+            src={logo}
+            alt="Publix Deal Tracker"
+            width={32}
+            height={32}
+            priority
+            className="h-8 w-8 rounded-lg"
+          />
+          <span className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
+            Publix Deal Tracker
+          </span>
         </Link>
         <nav
           aria-label="Primary"

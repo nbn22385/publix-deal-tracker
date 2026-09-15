@@ -6,8 +6,12 @@ import { StoreProvider } from "@/components/StoreProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Publix Deal Tracker - Never Miss a Deal",
+  title: "Publix Deal Tracker",
   description: "Get notified when your favorite Publix items go on sale or BOGO",
+  icons: {
+    icon: [{ url: '/icon.png', type: 'image/png' }],
+    apple: [{ url: '/icon.png' }],
+  },
 };
 
 export default function RootLayout({
