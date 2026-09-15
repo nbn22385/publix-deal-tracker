@@ -92,7 +92,7 @@ export default function AppHeader() {
             priority
             className="h-8 w-8 rounded-lg"
           />
-          <span className="whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
+          <span className="hidden whitespace-nowrap text-base font-bold text-publix sm:inline sm:text-2xl">
             Publix Deal Tracker
           </span>
         </Link>

@@ -8,7 +8,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
         <nav className="flex items-center justify-between gap-2">
-          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-base font-bold text-publix sm:text-2xl">
+          <div className="flex shrink-0 items-center gap-2 text-base font-bold text-publix sm:text-2xl">
             <Image
               src={logo}
               alt="Publix Deal Tracker"
@@ -17,7 +17,7 @@ export default function Home() {
               priority
               className="h-8 w-8 rounded-lg sm:h-9 sm:w-9"
             />
-            Publix Deal Tracker
+            <span className="hidden whitespace-nowrap sm:inline">Publix Deal Tracker</span>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             <ThemeToggle />
@@ -50,7 +50,7 @@ export default function Home() {
             href="/sign-up"
             className="inline-block rounded-full bg-publix px-8 py-4 text-lg font-semibold text-white hover:bg-publix-dark"
           >
-            Start Saving Today - It&apos;s Free
+            Start Saving Today
           </Link>
         </div>
 
