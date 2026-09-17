@@ -4,7 +4,7 @@ import { userStore, watchlistItems, availableItems, notificationLog } from '@/db
 import { getSales } from '@/lib/scraper';
 import { matchWatchlist, isCronAuthorized, type MatchableSale } from '@/lib/matching';
 import { generateEmailHtml, buildWeeklyAdSubject } from '@/lib/email';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/mailer';
 import { eq } from 'drizzle-orm';
 import type { UserStore } from '@/db/schema';
 
@@ -157,10 +157,8 @@ async function processUser(user: UserStore, dryRun: boolean): Promise<UserResult
         return { userId, matches: matchedItems.length, emailSent: false };
       } else if (userEmail) {
         const emailHtml = generateEmailHtml(matchedItems.map(m => m.item), user.storeName);
-        const resend = new Resend(process.env.RESEND_API_KEY);
 
-        await resend.emails.send({
-          from: 'Publix Deal Tracker <onboarding@resend.dev>',
+        await sendEmail({
           to: userEmail,
           subject: buildWeeklyAdSubject(matchedItems.length, user.storeName),
           html: emailHtml,

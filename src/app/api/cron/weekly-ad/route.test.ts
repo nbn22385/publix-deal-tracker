@@ -8,11 +8,12 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 vi.mock('@/lib/scraper', () => ({ getSales: vi.fn() }));
-vi.mock('resend', () => ({ Resend: class { emails = { send: vi.fn() } } }));
+vi.mock('@/lib/mailer', () => ({ sendEmail: vi.fn() }));
 
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { getSales } from '@/lib/scraper';
+import { sendEmail } from '@/lib/mailer';
 import * as route from './route';
 
 const { GET } = route;
@@ -85,6 +86,7 @@ describe('GET /api/cron/weekly-ad dry run', () => {
     expect(body.results).toEqual([{ userId: 'u1', matches: 1, emailSent: false }]);
     expect(vi.mocked(db.delete)).not.toHaveBeenCalled();
     expect(vi.mocked(db.insert)).not.toHaveBeenCalled();
+    expect(vi.mocked(sendEmail)).not.toHaveBeenCalled();
   });
 
   it('skips the refresh when no sales are fetched', async () => {

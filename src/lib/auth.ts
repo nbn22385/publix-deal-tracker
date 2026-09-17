@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { Resend } from 'resend';
+import { sendEmail } from './mailer';
 import { db } from './db';
 import { buildAuthOrigins } from './auth-origins';
 
@@ -25,14 +25,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
     sendResetPassword: async ({ user, url }) => {
-      const apiKey = process.env.RESEND_API_KEY;
-      if (!apiKey) {
-        console.error('RESEND_API_KEY is not set — skipping password reset email');
-        return;
-      }
-      const resend = new Resend(apiKey);
-      await resend.emails.send({
-        from: 'Publix Deal Tracker <onboarding@resend.dev>',
+      await sendEmail({
         to: user.email,
         subject: 'Reset your Publix Deal Tracker password',
         html: `
