@@ -21,7 +21,10 @@ interface UserResult {
   skipped?: boolean;
 }
 
-export async function POST(request: NextRequest) {
+// Vercel Cron Jobs invoke this endpoint with an HTTP GET request, so the
+// handler must be GET (a POST-only route answers every scheduled run with
+// a 405 and no user is ever processed).
+export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;

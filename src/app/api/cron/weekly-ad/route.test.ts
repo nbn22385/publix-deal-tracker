@@ -13,10 +13,12 @@ vi.mock('resend', () => ({ Resend: class { emails = { send: vi.fn() } } }));
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { getSales } from '@/lib/scraper';
-import { POST } from './route';
+import * as route from './route';
+
+const { GET } = route;
 
 const cronReq = (query = '') =>
-  new NextRequest(`http://localhost/api/cron/weekly-ad${query}`, { method: 'POST' });
+  new NextRequest(`http://localhost/api/cron/weekly-ad${query}`, { method: 'GET' });
 
 /** First db.select() lists users, second (chained) lists watchlist rows. */
 function mockUserAndWatchlist(users: unknown[], watchlistRows: unknown[]) {
@@ -47,12 +49,19 @@ beforeEach(() => {
   delete process.env.CRON_SECRET;
 });
 
-describe('POST /api/cron/weekly-ad auth', () => {
+describe('GET /api/cron/weekly-ad handler shape', () => {
+  it('exports GET (what Vercel Cron invokes) and no POST', () => {
+    expect(typeof route.GET).toBe('function');
+    expect('POST' in route).toBe(false);
+  });
+});
+
+describe('GET /api/cron/weekly-ad auth', () => {
   it('401s with a wrong bearer token when CRON_SECRET is set', async () => {
     process.env.CRON_SECRET = 's3cret';
-    const res = await POST(
+    const res = await GET(
       new NextRequest('http://localhost/api/cron/weekly-ad', {
-        method: 'POST',
+        method: 'GET',
         headers: { authorization: 'Bearer wrong' },
       }),
     );
@@ -61,7 +70,7 @@ describe('POST /api/cron/weekly-ad auth', () => {
   });
 });
 
-describe('POST /api/cron/weekly-ad dry run', () => {
+describe('GET /api/cron/weekly-ad dry run', () => {
   it('matches without writing or emailing', async () => {
     mockUserAndWatchlist(
       [{ userId: 'u1', storeId: 's1', zipCode: '32825' }],
@@ -69,7 +78,7 @@ describe('POST /api/cron/weekly-ad dry run', () => {
     );
     vi.mocked(getSales).mockResolvedValue([sale]);
 
-    const res = await POST(cronReq('?dryRun=1'));
+    const res = await GET(cronReq('?dryRun=1'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.dryRun).toBe(true);
@@ -85,7 +94,7 @@ describe('POST /api/cron/weekly-ad dry run', () => {
     );
     vi.mocked(getSales).mockResolvedValue([]);
 
-    const res = await POST(cronReq());
+    const res = await GET(cronReq());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.results).toEqual([{ userId: 'u1', matches: 0, emailSent: false, skipped: true }]);
