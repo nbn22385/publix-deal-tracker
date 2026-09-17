@@ -52,6 +52,9 @@ export const userStore = pgTable('user_store', {
   storeId: text('store_id').notNull(),
   storeName: text('store_name').notNull(),
   zipCode: text('zip_code').notNull(),
+  // Weekly-ad email opt-out. Defaults to true so existing users keep
+  // receiving emails; the Thursday cron skips users with this off.
+  emailsEnabled: boolean('emails_enabled').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

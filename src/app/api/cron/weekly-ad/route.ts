@@ -19,6 +19,7 @@ interface UserResult {
   matches: number;
   emailSent: boolean;
   skipped?: boolean;
+  emailsDisabled?: boolean;
 }
 
 // Vercel Cron Jobs invoke this endpoint with an HTTP GET request, so the
@@ -59,6 +60,12 @@ async function processUser(user: UserStore, dryRun: boolean): Promise<UserResult
   const storeId = user.storeId;
 
   try {
+    // Explicit opt-out: skip everything (no fetch, no email, no log rows).
+    // `=== false` keeps pre-migration rows without the column enabled.
+    if (user.emailsEnabled === false) {
+      return { userId, matches: 0, emailSent: false, emailsDisabled: true };
+    }
+
     // Stable product reference lives on the watchlist row itself now;
     // fall back to the legacy available_items join for older rows.
     const watchlistRows = await db

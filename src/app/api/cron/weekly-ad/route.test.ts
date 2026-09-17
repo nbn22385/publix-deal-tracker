@@ -103,4 +103,20 @@ describe('GET /api/cron/weekly-ad dry run', () => {
     expect(vi.mocked(db.delete)).not.toHaveBeenCalled();
     expect(vi.mocked(db.insert)).not.toHaveBeenCalled();
   });
+
+  it('skips users who disabled email alerts without fetching sales', async () => {
+    mockUserAndWatchlist(
+      [{ userId: 'u1', storeId: 's1', zipCode: '32825', emailsEnabled: false }],
+      [],
+    );
+
+    const res = await GET(cronReq());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.results).toEqual([
+      { userId: 'u1', matches: 0, emailSent: false, emailsDisabled: true },
+    ]);
+    expect(vi.mocked(getSales)).not.toHaveBeenCalled();
+    expect(vi.mocked(sendEmail)).not.toHaveBeenCalled();
+  });
 });
