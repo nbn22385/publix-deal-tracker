@@ -6,6 +6,16 @@ describe('email helpers', () => {
     expect(buildWeeklyAdSubject(3, 'Tampa Palms')).toBe('🔥 3 items on sale at Publix Tampa Palms!');
   });
 
+  it('uses the singular noun for one match', () => {
+    expect(buildWeeklyAdSubject(1, 'Tampa Palms')).toBe('🔥 1 item on sale at Publix Tampa Palms!');
+  });
+
+  it('renders the body heading without emoji', () => {
+    const html = generateEmailHtml([], 'Tampa Palms');
+    expect(html).toContain('<h1 style="color: #2d810e;">Publix Deal Tracker!</h1>');
+    expect(html).not.toContain('🔥');
+  });
+
   it('renders BOGO vs priced items', () => {
     const html = generateEmailHtml(
       [

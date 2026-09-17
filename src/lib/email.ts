@@ -10,7 +10,8 @@ function escapeHtml(value: string): string {
 }
 
 export function buildWeeklyAdSubject(matchCount: number, storeName: string): string {
-  return `🔥 ${matchCount} items on sale at Publix ${storeName}!`;
+  const noun = matchCount === 1 ? 'item' : 'items';
+  return `🔥 ${matchCount} ${noun} on sale at Publix ${storeName}!`;
 }
 
 export function generateEmailHtml(items: MatchableSale[], storeName: string): string {
@@ -38,7 +39,7 @@ export function generateEmailHtml(items: MatchableSale[], storeName: string): st
       <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #2d810e;">🔥 Publix Deal Tracker!</h1>
+      <h1 style="color: #2d810e;">Publix Deal Tracker!</h1>
       <p style="color: #6b7280;">Items matching your watchlist at <strong>${escapeHtml(storeName)}</strong>:</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         ${itemsHtml}
