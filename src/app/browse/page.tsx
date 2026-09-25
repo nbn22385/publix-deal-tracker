@@ -316,7 +316,7 @@ export default function Browse() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredItems.map((item) => (
-                  <div key={item.productId} className="rounded-lg border border-zinc-700 p-4">
+                  <div key={item.productId} className="flex flex-col rounded-lg border border-zinc-700 p-4">
                     {item.imageUrl && (
                       <img
                         src={item.imageUrl}
@@ -334,7 +334,7 @@ export default function Browse() {
                     {item.dealInfo && (
                       <p className="mb-2 text-xs font-bold text-foreground">{item.dealInfo}</p>
                     )}
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                    <div className="mt-auto flex flex-wrap items-center justify-end gap-2 pt-3">
                       {(() => {
                         const entry = watchlistEntryFor(item.productId, item.itemCode);
                         let state: 'idle' | 'adding' | 'added' | 'removing' | 'error' = 'idle';
