@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { filterSalesByWatchlist } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
-import { Trash2, ChevronDown } from 'lucide-react';
+import { Trash2, ChevronDown, Pencil } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import HelpContent from '@/components/HelpContent';
 import Toast from '@/components/Toast';
@@ -43,6 +43,10 @@ export default function Watchlist() {
   const [saleFilter, setSaleFilter] = useState<'all' | 'bogo' | 'priced'>('all');
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [deletedToast, setDeletedToast] = useState<{ item: WatchlistItem; index: number } | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editKeywords, setEditKeywords] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const toggleExpanded = (productId: string | null) => {
     setExpandedProductId((prev) => (prev === productId ? null : productId));
@@ -97,6 +101,47 @@ export default function Watchlist() {
     // Last delete wins if several happen within the undo window.
     setDeletedToast({ item: deleted, index });
     setWatchlist(prev => prev.filter(item => item.id !== id));
+  };
+
+  const startEditing = (item: WatchlistItem) => {
+    setEditingId(item.id);
+    setEditKeywords(item.keywords || '');
+    setEditError(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditKeywords('');
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async (id: number) => {
+    if (!session?.user?.id || editSaving) return;
+    const keywords = editKeywords.trim();
+    if (!keywords) {
+      setEditError('Keywords cannot be empty.');
+      return;
+    }
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, userId: session.user.id, keywords }),
+      });
+      if (!res.ok) {
+        setEditError('Could not save these keywords. Please try again.');
+        return;
+      }
+      setWatchlist((prev) => prev.map((entry) => (entry.id === id ? { ...entry, keywords } : entry)));
+      cancelEditing();
+    } catch (error) {
+      console.error('Error updating keywords:', error);
+      setEditError('Could not save these keywords. Please try again.');
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleUndoDelete = async () => {
@@ -295,8 +340,8 @@ export default function Watchlist() {
               ) : (
                 <div className="space-y-3">
                   {watchlist.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between rounded-xl bg-card p-4 shadow-lg border border-border">
-                      <div className="min-w-0">
+                      <div key={item.id} className="flex items-center justify-between gap-2 rounded-xl bg-card p-4 shadow-lg border border-border">
+                      <div className="min-w-0 flex-1">
                         {item.alertType === 'specific_item' ? (
                           <>
                             <p className="font-medium text-foreground">{item.productName || 'Unknown Item'}</p>
@@ -314,6 +359,32 @@ export default function Watchlist() {
                               <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
                             )}
                           </>
+                        ) : editingId === item.id ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editKeywords}
+                              autoFocus
+                              onChange={(e) => setEditKeywords(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEdit(item.id);
+                                if (e.key === 'Escape') cancelEditing();
+                              }}
+                              aria-label="Edit keywords"
+                              className="w-full max-w-56 rounded-md border border-zinc-700 bg-secondary px-3 py-1.5 text-sm text-foreground focus:border-publix focus:outline-none sm:max-w-72"
+                            />
+                            {editError && (
+                              <p className="mt-1.5 text-xs text-red-400">{editError}</p>
+                            )}
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
+                                {item.alertDepartment || 'All departments'}
+                              </span>
+                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                Keyword
+                              </span>
+                            </div>
+                          </>
                         ) : (
                           <>
                             <p className="font-medium text-foreground">{item.keywords}</p>
@@ -328,13 +399,46 @@ export default function Watchlist() {
                           </>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteWatchlistItem(item.id)}
-                        className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm text-red-400 hover:bg-red-500/10"
+                      <div
+                        className={`flex shrink-0 items-center gap-1 ${editingId === item.id ? 'self-start pt-0.5' : ''}`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Remove
-                      </button>
+                        {item.alertType === 'keyword' && (
+                          editingId === item.id ? (
+                            <>
+                              <button
+                                onClick={() => handleSaveEdit(item.id)}
+                                disabled={editSaving}
+                                className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-publix hover:bg-publix/10 disabled:opacity-50"
+                              >
+                                {editSaving ? 'Saving...' : 'Save'}
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                disabled={editSaving}
+                                className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm text-secondary-foreground hover:bg-secondary disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => startEditing(item)}
+                              aria-label={`Edit keywords for ${item.keywords}`}
+                              title="Edit keywords"
+                              className="inline-flex items-center rounded-md p-2 text-secondary-foreground hover:bg-secondary hover:text-foreground"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          )
+                        )}
+                        <button
+                          onClick={() => handleDeleteWatchlistItem(item.id)}
+                          className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

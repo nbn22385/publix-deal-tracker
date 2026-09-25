@@ -110,6 +110,42 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, userId, keywords } = body;
+
+    if (!id || !userId || typeof keywords !== 'string' || !keywords.trim()) {
+      return NextResponse.json(
+        { error: 'ID, user ID, and non-empty keywords are required' },
+        { status: 400 },
+      );
+    }
+
+    // Only keyword alerts are editable; ownership enforced via userId.
+    const [updated] = await db
+      .update(watchlistItems)
+      .set({ keywords: keywords.trim() })
+      .where(
+        and(
+          eq(watchlistItems.id, Number(id)),
+          eq(watchlistItems.userId, userId),
+          eq(watchlistItems.alertType, 'keyword'),
+        ),
+      )
+      .returning({ id: watchlistItems.id, keywords: watchlistItems.keywords });
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Keyword alert not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ item: updated });
+  } catch (error) {
+    console.error('Error updating watchlist:', error);
+    return NextResponse.json({ error: 'Failed to update watchlist' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

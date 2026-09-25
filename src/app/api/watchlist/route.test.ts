@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/db', () => ({ db: {} }));
 
 import { NextRequest } from 'next/server';
-import { GET, POST, DELETE } from './route';
+import { db } from '@/lib/db';
+import { GET, POST, PATCH, DELETE } from './route';
 
 const req = (url: string, init?: ConstructorParameters<typeof NextRequest>[1]) =>
   new NextRequest(url, init);
@@ -42,6 +43,35 @@ describe('POST /api/watchlist validation', () => {
   it('400s for keyword without keywords', async () => {
     const res = await POST(json({ userId: 'u1', alertType: 'keyword' }));
     expect(res.status).toBe(400);
+  });
+});
+
+describe('PATCH /api/watchlist validation', () => {
+  it('400s without id/userId/keywords', async () => {
+    expect(await (await PATCH(json({}))).status).toBe(400);
+    expect(await (await PATCH(json({ id: 1, userId: 'u1' }))).status).toBe(400);
+    expect(await (await PATCH(json({ id: 1, userId: 'u1', keywords: '   ' }))).status).toBe(400);
+  });
+
+  it('404s when no keyword row matches', async () => {
+    Object.assign(db, {
+      update: vi.fn().mockReturnValue({
+        set: () => ({ where: () => ({ returning: async () => [] }) }),
+      }),
+    });
+    const res = await PATCH(json({ id: 1, userId: 'u1', keywords: 'chicken' }));
+    expect(res.status).toBe(404);
+  });
+
+  it('returns the updated keywords', async () => {
+    Object.assign(db, {
+      update: vi.fn().mockReturnValue({
+        set: () => ({ where: () => ({ returning: async () => [{ id: 1, keywords: 'chicken' }] }) }),
+      }),
+    });
+    const res = await PATCH(json({ id: 1, userId: 'u1', keywords: '  chicken  ' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ item: { id: 1, keywords: 'chicken' } });
   });
 });
 
