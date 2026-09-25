@@ -1,4 +1,5 @@
 {
+  "buildCommand": "drizzle-kit migrate && next build",
   "crons": [
     {
       "path": "/api/cron/weekly-ad",
