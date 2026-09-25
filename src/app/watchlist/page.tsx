@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { filterSalesByWatchlist } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
-import { Trash2, ChevronDown, Pencil } from 'lucide-react';
+import { Trash2, ChevronDown, Pencil, Plus } from 'lucide-react';
+import KeywordComposer from '@/components/KeywordComposer';
 import AppHeader from '@/components/AppHeader';
 import HelpContent from '@/components/HelpContent';
 import Toast from '@/components/Toast';
@@ -48,6 +49,7 @@ export default function Watchlist() {
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [deletedToast, setDeletedToast] = useState<{ item: WatchlistItem; index: number } | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
   const [editKeywords, setEditKeywords] = useState('');
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -354,6 +356,30 @@ export default function Watchlist() {
 
             <div>
               <h2 className="mb-4 text-xl font-semibold text-foreground">Your Watchlist</h2>
+              {session?.user?.id && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => setComposerOpen((o) => !o)}
+                    aria-expanded={composerOpen}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-publix px-4 py-1.5 text-sm font-semibold text-publix hover:bg-publix/10"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add keyword alert
+                  </button>
+                  {composerOpen && (
+                    <div className="mt-3 rounded-xl border border-border bg-card p-4 shadow-lg sm:p-5">
+                      <KeywordComposer
+                        userId={session.user.id}
+                        compact
+                        onCreated={() => {
+                          setComposerOpen(false);
+                          loadData();
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               {showTypeFilter && (
                 <div className="mb-4 flex flex-wrap gap-2">
                   {(

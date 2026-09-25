@@ -8,6 +8,7 @@ import { formatSalePrice } from '@/lib/format';
 import { DEPARTMENTS } from '@/lib/scraper';
 import { X } from 'lucide-react';
 import ListButton from '@/components/ListButton';
+import KeywordComposer from '@/components/KeywordComposer';
 import Toast from '@/components/Toast';
 import AppHeader from '@/components/AppHeader';
 import StorePicker, { type StoreInfo } from '@/components/StorePicker';
@@ -41,8 +42,7 @@ export default function Browse() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  const [keywords, setKeywords] = useState('');
-  const [keywordDepartment, setKeywordDepartment] = useState('');
+  const [keywordPrefill, setKeywordPrefill] = useState('');
   const [browseView, setBrowseView] = useState<'sales' | 'keyword'>('sales');
   const [searchQuery, setSearchQuery] = useState('');
   const [addError, setAddError] = useState('');
@@ -191,39 +191,6 @@ export default function Browse() {
       setFailedId(watchlistId);
     } finally {
       setRemovingId(null);
-    }
-  };
-
-  const addKeywordAlert = async () => {
-    if (!session?.user?.id || !keywords) return;
-    setAddError('');
-
-    try {
-      const res = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          availableItemId: null,
-          keywords,
-          department: keywordDepartment || null,
-          alertType: 'keyword',
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setAddError(data?.error || 'Could not create this alert. Please try again.');
-        return;
-      }
-
-      setKeywords('');
-      setKeywordDepartment('');
-      setToastMessage('Alert created');
-      loadWatchlist();
-    } catch (error) {
-      console.error('Error adding keyword alert:', error);
-      setAddError('Could not create this alert. Please try again.');
     }
   };
 
@@ -405,11 +372,11 @@ export default function Browse() {
                   No items match &ldquo;{searchQuery.trim()}&rdquo;.
                 </p>
                 <div className="flex justify-center gap-3">
-                  <button
-                    onClick={() => {
-                      setKeywords(searchQuery.trim());
-                      setBrowseView('keyword');
-                    }}
+                    <button
+                      onClick={() => {
+                        setKeywordPrefill(searchQuery.trim());
+                        setBrowseView('keyword');
+                      }}
                     className="rounded-full bg-publix px-6 py-2 font-semibold text-white hover:bg-publix-dark"
                   >
                     Alert me about &ldquo;{searchQuery.trim()}&rdquo;
@@ -428,46 +395,17 @@ export default function Browse() {
                 Create a keyword alert and you&apos;ll receive an email every Thursday when there&apos;s a match.
               </p>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-secondary-foreground">
-                    Keywords (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="chicken, yogurt, coffee"
-                    value={keywords}
-                    onChange={(e) => setKeywords(e.target.value)}
-                    className="w-full rounded-md border border-zinc-700 bg-secondary px-4 py-2 text-foreground focus:border-publix focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-secondary-foreground">
-                    Department (optional)
-                  </label>
-                  <select
-                    value={keywordDepartment}
-                    onChange={(e) => setKeywordDepartment(e.target.value)}
-                    className="w-full rounded-md border border-zinc-700 bg-secondary px-4 py-2 text-foreground focus:border-publix focus:outline-none"
-                  >
-                    <option value="">All Departments</option>
-                    {Object.keys(DEPARTMENTS).map((dept) => (
-                      <option key={dept} value={dept} className="capitalize">
-                        {dept === 'bogo' ? 'BOGO only' : DEPARTMENTS[dept]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={addKeywordAlert}
-                  disabled={!keywords}
-                  className="rounded-full bg-publix px-6 py-2 font-semibold text-white hover:bg-publix-dark disabled:opacity-50"
-                >
-                  Create Alert
-                </button>
-              </div>
+              {session?.user?.id && (
+                <KeywordComposer
+                  key={keywordPrefill}
+                  userId={session.user.id}
+                  initialKeywords={keywordPrefill}
+                  onCreated={() => {
+                    setToastMessage('Alert created');
+                    loadWatchlist();
+                  }}
+                />
+              )}
             </div>
             )}
           </div>

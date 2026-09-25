@@ -174,3 +174,29 @@ describe('Watchlist type filter', () => {
     expect(screen.queryByRole('button', { name: /Specific items/ })).toBeNull();
   });
 });
+
+describe('Watchlist keyword composer', () => {
+  it('creates an alert from the collapsed disclosure', async () => {
+    render(<WatchlistPage />);
+    await screen.findByText('chicken');
+
+    // Collapsed by default.
+    expect(screen.queryByPlaceholderText('chicken, yogurt, coffee')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add keyword alert' }));
+    fireEvent.change(await screen.findByPlaceholderText('chicken, yogurt, coffee'), {
+      target: { value: 'yogurt' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create Alert' }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/watchlist',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"keywords":"yogurt"'),
+        }),
+      ),
+    );
+  });
+});
