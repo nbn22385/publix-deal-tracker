@@ -193,7 +193,7 @@ export default function Watchlist() {
               <h1 className="text-2xl font-bold text-foreground">Watchlist</h1>
             </div>
 
-            {matchingSales.length > 0 && (
+            {matchingSales.length > 0 ? (
               <div className="mb-8">
                 <h2 className="mb-4 text-xl font-semibold text-foreground">
                   Currently On Sale From Your Watchlist
@@ -267,6 +267,17 @@ export default function Watchlist() {
                   ))}
                 </div>
               </div>
+            ) : (
+              watchlist.length > 0 && (
+                <div className="mb-8 rounded-xl border border-border bg-secondary/50 p-6 text-center">
+                  <p className="font-medium text-foreground">Nothing on sale this week</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    None of your watchlist items are on sale
+                    {userStore ? ` at ${userStore.storeName}` : ''} right now. Check back
+                    Thursday when the new weekly ad drops.
+                  </p>
+                </div>
+              )
             )}
 
             <div>
