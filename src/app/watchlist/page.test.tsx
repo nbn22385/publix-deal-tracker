@@ -95,7 +95,7 @@ describe('Watchlist keyword editing', () => {
     const input = screen.getByLabelText('Edit keywords');
     expect((input as HTMLInputElement).value).toBe('chicken');
     fireEvent.change(input, { target: { value: 'turkey' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save keywords' }));
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
@@ -198,5 +198,36 @@ describe('Watchlist keyword composer', () => {
         }),
       ),
     );
+  });
+});
+
+describe('Watchlist card layout', () => {
+  it('keeps action icons on the title row with badges underneath', async () => {
+    render(<WatchlistPage />);
+    await screen.findByText('chicken');
+
+    // Pencil + Remove share one cluster next to the title …
+    const pencil = screen.getByRole('button', { name: 'Edit keywords for chicken' });
+    const cluster = pencil.parentElement;
+    expect(cluster?.querySelectorAll('button')[0]).toBe(pencil);
+    expect(cluster?.querySelectorAll('button')[1]?.getAttribute('aria-label')).toBe(
+      'Remove chicken',
+    );
+
+    // … and the badges sit in the row below the title row.
+    const chipsRow = screen.getByText('meat').closest('div');
+    const titleRow = screen.getByText('chicken').closest('div')?.parentElement;
+    expect(chipsRow?.previousElementSibling).toBe(titleRow);
+  });
+
+  it('shows icon-only actions on mobile with text labels for larger screens', async () => {
+    render(<WatchlistPage />);
+    await screen.findByText('chicken');
+
+    const remove = screen.getByRole('button', { name: 'Remove chicken' });
+    const label = remove.querySelector('span');
+    expect(label?.textContent).toBe('Remove');
+    expect(label?.className).toMatch(/hidden/);
+    expect(label?.className).toMatch(/sm:inline/);
   });
 });

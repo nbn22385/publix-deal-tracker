@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { filterSalesByWatchlist } from '@/lib/matching';
 import { formatSalePrice } from '@/lib/format';
-import { Trash2, ChevronDown, Pencil, Plus } from 'lucide-react';
+import { Trash2, ChevronDown, Pencil, Plus, Check, X } from 'lucide-react';
 import KeywordComposer from '@/components/KeywordComposer';
 import AppHeader from '@/components/AppHeader';
 import HelpContent from '@/components/HelpContent';
@@ -419,13 +419,95 @@ export default function Watchlist() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {visibleWatchlist.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between gap-2 rounded-xl bg-card p-4 shadow-lg border border-border">
-                      <div className="min-w-0 flex-1">
-                        {item.alertType === 'specific_item' ? (
-                          <>
-                            <p className="font-medium text-foreground">{item.productName || 'Unknown Item'}</p>
-                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {visibleWatchlist.map((item) => {
+                    const isEditing = editingId === item.id;
+                    const displayName =
+                      item.alertType === 'keyword'
+                        ? item.keywords || 'keyword alert'
+                        : item.productName || 'item';
+                    return (
+                      <div key={item.id} className="rounded-xl bg-card p-4 shadow-lg border border-border">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            {item.alertType === 'specific_item' ? (
+                              <p className="font-medium text-foreground">{item.productName || 'Unknown Item'}</p>
+                            ) : isEditing ? (
+                              <>
+                                <input
+                                  type="text"
+                                  value={editKeywords}
+                                  autoFocus
+                                  onChange={(e) => setEditKeywords(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveEdit(item.id);
+                                    if (e.key === 'Escape') cancelEditing();
+                                  }}
+                                  aria-label="Edit keywords"
+                                  className="w-full max-w-56 rounded-md border border-zinc-700 bg-secondary px-3 py-1.5 text-sm text-foreground focus:border-publix focus:outline-none sm:max-w-72"
+                                />
+                                {editError && (
+                                  <p className="mt-1.5 text-xs text-red-400">{editError}</p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="font-medium text-foreground">{item.keywords}</p>
+                            )}
+                            {item.alertType === 'specific_item' && item.description && (
+                              <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                            {item.alertType === 'keyword' && (
+                              isEditing ? (
+                                <>
+                                  <button
+                                    onClick={() => handleSaveEdit(item.id)}
+                                    disabled={editSaving}
+                                    aria-label="Save keywords"
+                                    title="Save keywords"
+                                    className="inline-flex items-center gap-1 rounded-md p-2 text-sm font-medium text-publix hover:bg-publix/10 disabled:opacity-50 sm:px-3 sm:py-1"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">
+                                      {editSaving ? 'Saving...' : 'Save'}
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={cancelEditing}
+                                    disabled={editSaving}
+                                    aria-label="Cancel editing"
+                                    title="Cancel editing"
+                                    className="inline-flex items-center gap-1 rounded-md p-2 text-sm text-secondary-foreground hover:bg-secondary disabled:opacity-50 sm:px-3 sm:py-1"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Cancel</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => startEditing(item)}
+                                  aria-label={`Edit keywords for ${item.keywords}`}
+                                  title="Edit keywords"
+                                  className="inline-flex items-center rounded-md p-2 text-secondary-foreground hover:bg-secondary hover:text-foreground"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                              )
+                            )}
+                            <button
+                              onClick={() => handleDeleteWatchlistItem(item.id)}
+                              aria-label={`Remove ${displayName}`}
+                              title="Remove"
+                              className="inline-flex items-center gap-1 rounded-md p-2 text-sm text-red-400 hover:bg-red-500/10 sm:px-3 sm:py-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {item.alertType === 'specific_item' ? (
+                            <>
                               {item.itemDepartment && (
                                 <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
                                   {item.itemDepartment}
@@ -434,93 +516,21 @@ export default function Watchlist() {
                               <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                                 Specific item
                               </span>
-                            </div>
-                            {item.description && (
-                              <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
-                            )}
-                          </>
-                        ) : editingId === item.id ? (
-                          <>
-                            <input
-                              type="text"
-                              value={editKeywords}
-                              autoFocus
-                              onChange={(e) => setEditKeywords(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveEdit(item.id);
-                                if (e.key === 'Escape') cancelEditing();
-                              }}
-                              aria-label="Edit keywords"
-                              className="w-full max-w-56 rounded-md border border-zinc-700 bg-secondary px-3 py-1.5 text-sm text-foreground focus:border-publix focus:outline-none sm:max-w-72"
-                            />
-                            {editError && (
-                              <p className="mt-1.5 text-xs text-red-400">{editError}</p>
-                            )}
-                            <div className="mt-1.5 flex flex-wrap gap-1.5">
-                              <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
-                                {item.alertDepartment || 'All departments'}
-                              </span>
-                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                                Keyword
-                              </span>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-medium text-foreground">{item.keywords}</p>
-                            <div className="mt-1.5 flex flex-wrap gap-1.5">
-                              <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
-                                {item.alertDepartment || 'All departments'}
-                              </span>
-                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                                Keyword
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <div
-                        className={`flex shrink-0 items-center gap-1 ${editingId === item.id ? 'self-start pt-0.5' : ''}`}
-                      >
-                        {item.alertType === 'keyword' && (
-                          editingId === item.id ? (
-                            <>
-                              <button
-                                onClick={() => handleSaveEdit(item.id)}
-                                disabled={editSaving}
-                                className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-publix hover:bg-publix/10 disabled:opacity-50"
-                              >
-                                {editSaving ? 'Saving...' : 'Save'}
-                              </button>
-                              <button
-                                onClick={cancelEditing}
-                                disabled={editSaving}
-                                className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm text-secondary-foreground hover:bg-secondary disabled:opacity-50"
-                              >
-                                Cancel
-                              </button>
                             </>
                           ) : (
-                            <button
-                              onClick={() => startEditing(item)}
-                              aria-label={`Edit keywords for ${item.keywords}`}
-                              title="Edit keywords"
-                              className="inline-flex items-center rounded-md p-2 text-secondary-foreground hover:bg-secondary hover:text-foreground"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                          )
-                        )}
-                        <button
-                          onClick={() => handleDeleteWatchlistItem(item.id)}
-                          className="inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm text-red-400 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Remove
-                        </button>
+                            <>
+                              <span className="rounded-full bg-publix/10 px-2.5 py-0.5 text-xs font-medium capitalize text-publix">
+                                {item.alertDepartment || 'All departments'}
+                              </span>
+                              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                Keyword
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
