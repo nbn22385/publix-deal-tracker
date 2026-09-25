@@ -33,6 +33,9 @@ interface CurrentSaleItem extends WatchlistItem {
   dealInfo: string | null;
 }
 
+/** More keyword matches than this earns the "too many matches" nudge. */
+const KEYWORD_BURST_THRESHOLD = 20;
+
 export default function Watchlist() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -198,6 +201,13 @@ export default function Watchlist() {
   }
 
   const matchingSales = filterSalesByWatchlist(watchlist, currentSales);
+  // Keyword-only matches drive the "too many matches" nudge: specific-item
+  // alerts are exact by construction and never count toward the burst.
+  const keywordMatchCount = filterSalesByWatchlist(
+    watchlist.filter((entry) => entry.alertType === 'keyword'),
+    currentSales,
+  ).length;
+  const showBurstNudge = keywordMatchCount > KEYWORD_BURST_THRESHOLD;
   const bogoCount = matchingSales.filter((item) => item.isBogo).length;
   const pricedCount = matchingSales.length - bogoCount;
   const showSaleFilter = bogoCount > 0 && pricedCount > 0;
@@ -311,6 +321,18 @@ export default function Watchlist() {
                     </div>
                   ))}
                 </div>
+                {showBurstNudge && (
+                  <div className="mt-6 rounded-xl border border-yellow-500/40 bg-yellow-400/15 p-6 text-center">
+                    <p className="font-medium text-foreground">Too many matches?</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Try refining your keywords or narrowing their departments for fewer,
+                      more relevant results.{' '}
+                      <a href="#watchlist" className="font-medium text-publix hover:underline">
+                        Review your keywords
+                      </a>
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               watchlist.length > 0 && (
@@ -325,7 +347,7 @@ export default function Watchlist() {
               )
             )}
 
-            <div>
+            <div id="watchlist">
               <h2 className="mb-4 text-xl font-semibold text-foreground">Your Watchlist</h2>
               {watchlist.length === 0 ? (
                 <div className="rounded-xl bg-card p-8 text-center shadow-lg border border-border">

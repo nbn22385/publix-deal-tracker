@@ -46,13 +46,31 @@ const fetchMock = vi.fn(async (url: string, init?: { method?: string }) => {
     return { ok: true, json: async () => ({ item: { id: 7, keywords: 'turkey' } }) };
   }
   if (typeof url === 'string' && url.startsWith('/api/stores/')) {
-    return { ok: true, json: async () => ({ items: [] }) };
+    return { ok: true, json: async () => ({ items: salesFixture }) };
   }
-  return { ok: true, json: async () => ({ items: [keywordItem] }) };
+  return { ok: true, json: async () => ({ items: watchlistFixture }) };
 });
+
+// Overridden per test for match-count scenarios; defaults to no sales.
+let salesFixture: unknown[] = [];
+let watchlistFixture: unknown[] = [keywordItem];
+
+const chocSales = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({
+    productId: `c${i}`,
+    productName: `Choc Item ${i + 1}`,
+    department: 'snacks',
+    salePrice: '2.00',
+    isBogo: false,
+    imageUrl: '',
+    description: '',
+    dealInfo: null,
+  }));
 
 beforeEach(() => {
   fetchMock.mockClear();
+  salesFixture = [];
+  watchlistFixture = [keywordItem];
   vi.stubGlobal('fetch', fetchMock);
 });
 
@@ -89,5 +107,37 @@ describe('Watchlist keyword editing', () => {
       ),
     );
     await screen.findByText('turkey');
+  });
+});
+
+describe('Watchlist burst nudge', () => {
+  const chocEntry = {
+    ...keywordItem,
+    id: 8,
+    keywords: 'choc',
+    alertDepartment: null,
+  };
+
+  it('shows the refining nudge past 20 keyword matches', async () => {
+    watchlistFixture = [chocEntry];
+    salesFixture = chocSales(21);
+    render(<WatchlistPage />);
+
+    await screen.findByText('Too many matches?');
+    expect(
+      screen.getByText(/refining your keywords or narrowing their departments/),
+    ).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Review your keywords' }).getAttribute('href')).toBe(
+      '#watchlist',
+    );
+  });
+
+  it('stays hidden at exactly 20 keyword matches', async () => {
+    watchlistFixture = [chocEntry];
+    salesFixture = chocSales(20);
+    render(<WatchlistPage />);
+
+    await screen.findByText('Choc Item 1');
+    expect(screen.queryByText('Too many matches?')).toBeNull();
   });
 });
