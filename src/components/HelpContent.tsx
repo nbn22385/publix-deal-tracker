@@ -1,19 +1,19 @@
 const STEPS = [
   {
     title: 'Pick your store',
-    body: 'Tap the pin icon up top and enter your ZIP code. Sale prices follow your store’s weekly ad.',
+    body: 'Choose a store by entering your zip code (or use current location). Sale prices follow your store’s weekly ad. Change your selection anytime in Settings',
   },
   {
     title: 'Browse the ad',
     body: 'On the Browse tab, search or filter the current sales and tap + to watch an item.',
   },
   {
-    title: 'Or set a keyword alert',
-    body: 'Use Notify me for anything (even off-sale items) — matching ignores accents and case.',
+    title: 'Or add a keyword alert',
+    body: 'On your Watchlist, “Add keyword alert” (or Browse → Notify me) covers anything, even off-sale items. Matching ignores accents and case.',
   },
   {
     title: 'Get notified',
-    body: 'Every Thursday we email everything on your watchlist that’s on sale.',
+    body: 'Every Thursday we email everything on your watchlist that’s on sale. Toggle alerts anytime in Settings.',
   },
 ];
 
