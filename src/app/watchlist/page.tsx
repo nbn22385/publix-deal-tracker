@@ -270,7 +270,7 @@ export default function Watchlist() {
             ) : (
               watchlist.length > 0 && (
                 <div className="mb-8 rounded-xl border border-border bg-secondary/50 p-6 text-center">
-                  <p className="font-medium text-foreground">Nothing on sale this week</p>
+                  <p className="font-medium text-foreground">No watchlist matches this week</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     None of your watchlist items are on sale
                     {userStore ? ` at ${userStore.storeName}` : ''} right now. Check back
