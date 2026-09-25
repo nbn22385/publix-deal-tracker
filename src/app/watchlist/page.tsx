@@ -44,6 +44,7 @@ export default function Watchlist() {
   const [currentSales, setCurrentSales] = useState<CurrentSaleItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [saleFilter, setSaleFilter] = useState<'all' | 'bogo' | 'priced'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'keyword' | 'specific_item'>('all');
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [deletedToast, setDeletedToast] = useState<{ item: WatchlistItem; index: number } | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -211,6 +212,13 @@ export default function Watchlist() {
   const bogoCount = matchingSales.filter((item) => item.isBogo).length;
   const pricedCount = matchingSales.length - bogoCount;
   const showSaleFilter = bogoCount > 0 && pricedCount > 0;
+  const keywordCount = watchlist.filter((item) => item.alertType === 'keyword').length;
+  const specificCount = watchlist.length - keywordCount;
+  const showTypeFilter = keywordCount > 0 && specificCount > 0;
+  const visibleWatchlist =
+    !showTypeFilter || typeFilter === 'all'
+      ? watchlist
+      : watchlist.filter((item) => item.alertType === typeFilter);
   const visibleSales =
     !showSaleFilter || saleFilter === 'all'
       ? matchingSales
@@ -269,7 +277,7 @@ export default function Watchlist() {
                           onClick={() => setSaleFilter(value)}
                           className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${active ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
                         >
-                          {label}
+                          {label}{' '}
                           <span
                             className={`rounded-full px-1.5 py-0.5 text-xs font-bold leading-none ${active ? 'bg-white/25 text-white' : 'bg-publix/10 text-publix'}`}
                           >
@@ -326,10 +334,7 @@ export default function Watchlist() {
                     <p className="font-medium text-foreground">Too many matches?</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Try refining your keywords or narrowing their departments for fewer,
-                      more relevant results.{' '}
-                      <a href="#watchlist" className="font-medium text-publix hover:underline">
-                        Review your keywords
-                      </a>
+                      more relevant results.
                     </p>
                   </div>
                 )}
@@ -347,8 +352,35 @@ export default function Watchlist() {
               )
             )}
 
-            <div id="watchlist">
+            <div>
               <h2 className="mb-4 text-xl font-semibold text-foreground">Your Watchlist</h2>
+              {showTypeFilter && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {(
+                    [
+                      ['all', 'All', watchlist.length],
+                      ['keyword', 'Keyword', keywordCount],
+                      ['specific_item', 'Specific items', specificCount],
+                    ] as const
+                  ).map(([value, label, count]) => {
+                    const active = typeFilter === value;
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => setTypeFilter(value)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${active ? 'bg-publix text-white' : 'bg-secondary text-secondary-foreground'}`}
+                      >
+                        {label}{' '}
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-xs font-bold leading-none ${active ? 'bg-white/25 text-white' : 'bg-publix/10 text-publix'}`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {watchlist.length === 0 ? (
                 <div className="rounded-xl bg-card p-8 text-center shadow-lg border border-border">
                   <p className="mb-4 text-muted-foreground">Your watchlist is empty.</p>
@@ -361,7 +393,7 @@ export default function Watchlist() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {watchlist.map((item) => (
+                  {visibleWatchlist.map((item) => (
                       <div key={item.id} className="flex items-center justify-between gap-2 rounded-xl bg-card p-4 shadow-lg border border-border">
                       <div className="min-w-0 flex-1">
                         {item.alertType === 'specific_item' ? (

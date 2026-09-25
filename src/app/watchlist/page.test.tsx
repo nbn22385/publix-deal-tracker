@@ -127,9 +127,7 @@ describe('Watchlist burst nudge', () => {
     expect(
       screen.getByText(/refining your keywords or narrowing their departments/),
     ).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Review your keywords' }).getAttribute('href')).toBe(
-      '#watchlist',
-    );
+    expect(screen.queryByRole('link', { name: 'Review your keywords' })).toBeNull();
   });
 
   it('stays hidden at exactly 20 keyword matches', async () => {
@@ -139,5 +137,40 @@ describe('Watchlist burst nudge', () => {
 
     await screen.findByText('Choc Item 1');
     expect(screen.queryByText('Too many matches?')).toBeNull();
+  });
+});
+
+describe('Watchlist type filter', () => {
+  const specificEntry = {
+    ...keywordItem,
+    id: 9,
+    alertType: 'specific_item',
+    keywords: null,
+    productName: 'Yogurt Tub',
+    productId: 'y1',
+  };
+
+  it('filters rows by keyword vs specific item', async () => {
+    watchlistFixture = [keywordItem, specificEntry];
+    render(<WatchlistPage />);
+
+    await screen.findByText('chicken');
+    await screen.findByText('Yogurt Tub');
+
+    fireEvent.click(screen.getByRole('button', { name: /Keyword 1/ }));
+    expect(screen.getByText('chicken')).toBeTruthy();
+    expect(screen.queryByText('Yogurt Tub')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /Specific items 1/ }));
+    expect(screen.queryByText('chicken')).toBeNull();
+    expect(screen.getByText('Yogurt Tub')).toBeTruthy();
+  });
+
+  it('stays hidden when only one alert type exists', async () => {
+    render(<WatchlistPage />);
+
+    await screen.findByText('chicken');
+    expect(screen.queryByRole('button', { name: /Keyword/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Specific items/ })).toBeNull();
   });
 });
